@@ -8,8 +8,14 @@ bs4 = "*"
 scipy = "*"
 mypy = "*"
 pytest = "*"
+requests = "*"
+jurigged = "*"
 
 [dev-packages]
 
 [requires]
 python_version = "3.10"
+
+[scripts]
+start = "python main.py"
+test = "pytest"
