@@ -1,4 +1,4 @@
-from .src.scraper import Scraper
+from .scraper import Scraper
 
 def start():
     print("--- Start ---")
