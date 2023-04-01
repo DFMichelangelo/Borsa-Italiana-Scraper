@@ -9,7 +9,7 @@ class Scraper:
         print("Started get data d")
         headers = {'Accept-Encoding': 'identity'}
         response = requests.get("https://www.borsaitaliana.it/borsa/obbligazioni/mot/obbligazioni-euro/lista.html", headers=headers)
-        #print("Ho preso" + response.text)
+        print("Ho preso" + response.text)
         soup = BeautifulSoup(response.text, 'html.parser')
         
         print("scraper")
