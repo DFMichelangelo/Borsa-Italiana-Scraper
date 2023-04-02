@@ -1,9 +1,10 @@
 from .scraper import Scraper
+from .fileService import FileService
 
 def start():
     print("--- Start ---")
     scraper = Scraper()
-    print("--- Finished scraping, init  ---")
     bonds = scraper.get_data()
-    for single_bond in bonds:
-        single_bond.calculate_yeld_to_maturity()
+    print("--- Finished scraping, saving file  ---")
+    file_service = FileService()
+    file_service.save_csv(file_service.create_csv(bonds))

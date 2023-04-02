@@ -8,7 +8,7 @@ class Scraper:
 
     def find_value_from_label(self, label: str, soup: BeautifulSoup) -> str:
         try:
-            return soup.find(string=label).find_parent("tr").find_all("td")[1].find("span").text
+            return soup.find(string=label).find_parent("tr").find_all("td")[1].find("span").text.replace("\n", "")
         except:
             return "";
     
@@ -59,7 +59,7 @@ class Scraper:
         bond.bid_price = self.find_value_from_label_float("Prezzo Vendita",soup_complete_data)
         bond.bid_volume = self.find_value_from_label_float("Volume Vendita",soup_complete_data)
 
-        print("End", bond)
+        #print("End", bond)
         return bond;
 
     def get_data_single_url(self, url) -> List[Bond]:
@@ -85,9 +85,10 @@ class Scraper:
             "https://www.borsaitaliana.it/borsa/obbligazioni/mot/obbligazioni-euro/lista.html",
             "https://www.borsaitaliana.it/borsa/obbligazioni/extramot/lista.html"
         ]
-        bonds = []
+        bonds : List[Bond]= []
         for url in urls:
             single_bond_list = self.get_data_single_url(url)
-            bonds.append(single_bond_list)
+            for single in single_bond_list:
+                bonds.append(single)
         
         return bonds;
