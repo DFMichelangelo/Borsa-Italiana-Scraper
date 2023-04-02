@@ -7,25 +7,26 @@ class Frequency(Enum):
     pass
 
 class Bond:
-    name: str
-    isin: str
-    negotiation_currency:str
-    liquidation_currency:str
-    field_type: str
-    total_volume:int
-    ask_price:float
-    bid_price:float
-    ask_volume:float
-    bid_volume:float
-    bond_type:str
+    name: str  #ok
+    isin: str #ok
+    negotiation_currency:str #ok
+    liquidation_currency:str #ok
+    field_type: str #ok
+    total_volume:int #ok
+    ask_price:float #ok
+    bid_price:float #ok
+    ask_volume:float #ok
+    bid_volume:float #ok
+    bond_type:str #ok
     coupoon_frequency:Frequency
-    emission_date:datetime
+    emission_date: datetime
     maturity_date: datetime
-    payout_desription: str
+    payout_desription: str #ok
     bond_structure:str
-    subordination:str
-    coupon_percentage:float
+    subordination:str #ok
+    coupon_percentage:float #ok
     borsa_italiana_gross_yield:float
+    minimun_amount: int #ok
 
 
 
