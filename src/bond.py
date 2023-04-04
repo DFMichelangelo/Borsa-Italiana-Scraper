@@ -1,10 +1,10 @@
 import datetime
 from enum import Enum
 
-
-
 class Frequency(Enum):
-    pass
+    TRIMESTRAL=4
+    SEMESTRAL=2
+    ANNUAL=1
 
 class Bond:
     name: str
@@ -18,16 +18,14 @@ class Bond:
     ask_volume:float
     bid_volume:float
     bond_type:str
-    coupoon_frequency:Frequency
+    coupon_frequency:Frequency
     emission_date:datetime
     maturity_date: datetime
     payout_desription: str
     bond_structure:str
     subordination:str
-    coupon_percentage:float
+    coupon_amount:float
     borsa_italiana_gross_yield:float
-
-
 
     def calculate_yeld_to_maturity(self):
         print("optimize")
