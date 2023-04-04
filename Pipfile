@@ -8,6 +8,7 @@ bs4 = "*"
 scipy = "*"
 requests = "*"
 html5lib = "*"
+pandas = "*"
 
 [dev-packages]
 pytest = "*"
