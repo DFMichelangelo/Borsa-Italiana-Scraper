@@ -30,7 +30,7 @@ class Random_Objects:
   
   @staticmethod    
   def random_bond()->Bond:
-    bond =Bond()
+    bond = Bond()
     bond.name=Random_Objects.random_string()
     bond.isin=Random_Objects.random_string() 
     bond.negotiation_currency =Random_Objects.random_string()

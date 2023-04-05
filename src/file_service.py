@@ -1,6 +1,6 @@
 from os import path
 from .bond import Bond
-from typing import Dict, Iterable, List, Tuple
+from typing import Iterable, List, Tuple
 import pandas as pd
 
 class FileService():
@@ -16,7 +16,6 @@ class FileService():
         + str(bond.ask_volume)+";" 
         + str(bond.bid_volume)+";"
         + "\n"
-    
     return out;
 
   def save_csv(self, data: str) -> None:
@@ -27,10 +26,11 @@ class FileService():
 
 
   @staticmethod
-  def create_dataframe(bonds: List[Bond])->pd.DataFrame:
+  def create_dataframe_from_bonds(bonds: List[Bond])->pd.DataFrame:
     bond_dicts = [bond_dict.__dict__ for bond_dict in bonds]
     return pd.DataFrame(bond_dicts)
   
+  # this function creates an excel given the pandas dataframes and their name
   @staticmethod
   def save_excel(data:Iterable[Tuple[str,pd.DataFrame]])->None:
     with pd.ExcelWriter(path.join("out", "output_scrapring.xlsx")) as writer:  
