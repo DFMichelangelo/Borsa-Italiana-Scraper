@@ -20,4 +20,4 @@ jobs:
           pip install --user pipenv
           pipenv install
       - name: execute py script # run main.py
-        run: pipenv run send_results_by_email
+        run: pipenv run send_report_by_email
