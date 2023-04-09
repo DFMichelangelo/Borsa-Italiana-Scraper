@@ -1,4 +1,5 @@
 from .bond import Bond
+from .single_table_dto import SingleTableDTO
 from bs4 import BeautifulSoup
 from typing import List
 import urllib
@@ -85,6 +86,25 @@ class Scraper:
 
     def get_data_single_url(self, url) -> List[Bond]:
         print("Started get data")
+        bonds = []
+        data_start = self.analyze_single_table(url)
+        for bond in data_start.bonds:
+            bonds.append(bond)
+
+        if(data_start.next_url):
+            url_rolling = data_start.next_url
+            while(url_rolling != None):
+                print("Start cycle", url_rolling)
+                data = self.analyze_single_table(url_rolling)
+                for bond in data.bonds:
+                    bonds.append(bond)
+                print("Next url is", data.next_url)
+                url_rolling = data.next_url
+                
+        print("End")
+        return bonds
+    
+    def analyze_single_table(self, url) -> SingleTableDTO:
         headers = {'Accept-Encoding': 'identity'}
         response = requests.get(url, headers=headers)
         soup = BeautifulSoup(response.text, 'html5lib')
@@ -96,15 +116,20 @@ class Scraper:
             href = single_row[0].find("a", href=True)['href']
             bond = self.analyze_single_bond("https://www.borsaitaliana.it" + href)
             bonds.append(bond)
-            print("-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-")
+            print("--------------------------------")
         
-        print("End")
-        return bonds
-    
+        next_url = "https://www.borsaitaliana.it" + soup.find("ul", {"class": "m-pagination__nav"}).find("a", title="Successiva", href=True)['href'];
+        out = SingleTableDTO()
+        out.next_url = next_url
+        out.bonds = bonds;
+        return out
+
     def get_data(self) -> List[Bond]:
         urls = [
             "https://www.borsaitaliana.it/borsa/obbligazioni/mot/obbligazioni-euro/lista.html",
-            "https://www.borsaitaliana.it/borsa/obbligazioni/extramot/lista.html"
+            "https://www.borsaitaliana.it/borsa/obbligazioni/extramot/lista.html",
+            "https://www.borsaitaliana.it/borsa/obbligazioni/extramot-procube/lista.html",
+            "https://www.borsaitaliana.it/borsa/obbligazioni/mot/btp/lista.html"
         ]
         bonds : List[Bond]= []
         for url in urls:
