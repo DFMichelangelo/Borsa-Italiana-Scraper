@@ -107,11 +107,15 @@ class Scraper:
         return bonds
     
     def analyze_single_table(self, url) -> SingleTableDTO:
-        headers = {'Accept-Encoding': 'identity'}
-        response = requests.get(url, headers=headers)
-        soup = BeautifulSoup(response.text, 'html5lib')
-        rows = soup.find("table").find("tbody").find_all("tr")
         bonds = []
+        try:
+            headers = {'Accept-Encoding': 'identity'}
+            response = requests.get(url, headers=headers)
+            soup = BeautifulSoup(response.text, 'html5lib')
+            rows = soup.find("table").find("tbody").find_all("tr")
+        except:
+            return bonds
+        
         for row in rows:
             single_row = row.find_all("td")
             if single_row == None or len(single_row) == 0 : continue
