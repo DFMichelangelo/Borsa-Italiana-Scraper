@@ -114,7 +114,9 @@ class Scraper:
             soup = BeautifulSoup(response.text, 'html5lib')
             rows = soup.find("table").find("tbody").find_all("tr")
         except:
-            return bonds
+            out_ex = SingleTableDTO()
+            out_ex.bonds = bonds;
+            return out_ex
         
         for row in rows:
             single_row = row.find_all("td")
