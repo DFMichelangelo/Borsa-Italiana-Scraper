@@ -6,6 +6,12 @@ import requests
 
 class Scraper:
 
+    def find_n_value_from_label(self, label: str, index: int, soup: BeautifulSoup) -> str:
+        try:
+            return soup.find_all(string=label)[index].find_parent("tr").find_all("td")[1].find("span").text.replace("\n", "")
+        except:
+            return "";
+
     def find_value_from_label(self, label: str, soup: BeautifulSoup) -> str:
         try:
             return soup.find(string=label).find_parent("tr").find_all("td")[1].find("span").text.replace("\n", "")
@@ -14,13 +20,13 @@ class Scraper:
     
     def find_value_from_label_float(self, label: str, soup: BeautifulSoup) -> float:
         try:
-            return float(self.find_value_from_label(label, soup))
+            return float(self.find_value_from_label(label, soup).replace(".", "").replace(",", "."))
         except:
             return 0;
     
     def find_value_from_label_int(self, label: str, soup: BeautifulSoup) -> int:
         try:
-            return int(self.find_value_from_label(label, soup))
+            return int(self.find_value_from_label(label, soup).replace(".", "").replace(",", "."))
         except:
             return 0;
 
@@ -37,6 +43,8 @@ class Scraper:
         bond.bond_structure = self.find_value_from_label("Struttura Bond",soup)
         bond.payout_desription = self.find_value_from_label("Descrizione Payout",soup)
         bond.coupon_percentage = self.find_value_from_label_float("Tasso Prossima Cedola",soup)
+        bond.emission_date = self.find_value_from_label("Data Inizio Negoziazione",soup)
+        bond.coupoon_frequency = self.find_value_from_label("Periodicità cedola",soup)
 
         #Switch to complete data
         try:
@@ -53,13 +61,14 @@ class Scraper:
         bond.total_volume = self.find_value_from_label_float("Volume totale",soup_complete_data)
         bond.minimun_amount = self.find_value_from_label_int("Lotto Minimo",soup_complete_data)
         bond.field_type  = self.find_value_from_label("Tipologia",soup_complete_data)
-        
-        bond.ask_price = self.find_value_from_label_float("Prezzo Acquisto",soup_complete_data)
-        bond.ask_volume = self.find_value_from_label_float("Volume Acquisto",soup_complete_data)
-        bond.bid_price = self.find_value_from_label_float("Prezzo Vendita",soup_complete_data)
-        bond.bid_volume = self.find_value_from_label_float("Volume Vendita",soup_complete_data)
 
-        #print("End", bond)
+        bond.ask_price = float(self.find_n_value_from_label("Prezzo Acquisto",1,soup_complete_data).replace(".", "").replace(",", "."))
+        bond.ask_volume = float(self.find_n_value_from_label("Volume Acquisto",1,soup_complete_data).replace(".", "").replace(",", "."))
+        bond.bid_price = float(self.find_n_value_from_label("Prezzo Vendita",1,soup_complete_data).replace(".", "").replace(",", "."))
+        bond.bid_volume = float(self.find_n_value_from_label("Volume Vendita",1,soup_complete_data).replace(".", "").replace(",", "."))
+
+        bond.maturity_date = self.find_value_from_label("Scadenza",soup_complete_data)
+        
         return bond;
 
     def get_data_single_url(self, url) -> List[Bond]:

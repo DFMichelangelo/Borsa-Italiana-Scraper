@@ -7,14 +7,24 @@ class FileService():
 
   def create_csv(self, bonds: List[Bond]) -> str:
     print("Preparing CSV")
-    out = "ISIN;Name;Field Type; Coupon; Ask Price; Bid Price; Ask Volume; Bid volume \n";
+    out = "ISIN;Name;Field Type; Coupon; Frequency; Ask Price; Bid Price; Ask Volume; Bid volume; Negotiation currency; Liquidation Currency; Field Type; Total Volume; Emission Date; Maturity Date; Bond Structure; Subordination; Min Amount \n";
     for bond in bonds:
         out += bond.isin + ";" + bond.name + ";" + bond.field_type + ";"
         + str(bond.coupon_percentage) + ";" 
+        + str(bond.coupoon_frequency)+";"
         + str(bond.ask_price)+";" 
         + str(bond.bid_price)+";"
         + str(bond.ask_volume)+";" 
         + str(bond.bid_volume)+";"
+        + str(bond.negotiation_currency)+";"
+        + str(bond.liquidation_currency)+";"
+        + str(bond.field_type)+";"
+        + str(bond.total_volume)+";"
+        + str(bond.emission_date)+";"
+        + str(bond.maturity_date)+";"
+        + str(bond.bond_structure)+";"
+        + str(bond.subordination)+";"
+        + str(bond.minimun_amount)+";"
         + "\n"
     return out;
 
