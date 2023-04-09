@@ -85,7 +85,9 @@ class Scraper:
         return bond;
 
     def get_data_single_url(self, url) -> List[Bond]:
-        print("Started get data")
+        print("********************* New URL *********************")
+        print(url)
+        print("***************************************************")
         bonds = []
         data_start = self.analyze_single_table(url)
         for bond in data_start.bonds:
