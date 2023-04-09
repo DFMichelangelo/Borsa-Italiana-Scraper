@@ -62,10 +62,22 @@ class Scraper:
         bond.minimun_amount = self.find_value_from_label_int("Lotto Minimo",soup_complete_data)
         bond.field_type  = self.find_value_from_label("Tipologia",soup_complete_data)
 
-        bond.ask_price = float(self.find_n_value_from_label("Prezzo Acquisto",1,soup_complete_data).replace(".", "").replace(",", "."))
-        bond.ask_volume = float(self.find_n_value_from_label("Volume Acquisto",1,soup_complete_data).replace(".", "").replace(",", "."))
-        bond.bid_price = float(self.find_n_value_from_label("Prezzo Vendita",1,soup_complete_data).replace(".", "").replace(",", "."))
-        bond.bid_volume = float(self.find_n_value_from_label("Volume Vendita",1,soup_complete_data).replace(".", "").replace(",", "."))
+        try:
+            bond.ask_price = float(self.find_n_value_from_label("Prezzo Acquisto",1,soup_complete_data).replace(".", "").replace(",", "."))
+        except:
+            bond.ask_price = 0
+        try:
+            bond.ask_volume = float(self.find_n_value_from_label("Volume Acquisto",1,soup_complete_data).replace(".", "").replace(",", "."))
+        except:
+            bond.ask_volume = 0
+        try:
+            bond.bid_price = float(self.find_n_value_from_label("Prezzo Vendita",1,soup_complete_data).replace(".", "").replace(",", "."))
+        except:
+            bond.bid_price = 0
+        try:
+            bond.bid_volume = float(self.find_n_value_from_label("Volume Vendita",1,soup_complete_data).replace(".", "").replace(",", "."))
+        except:
+            bond.bid_volume = 0
 
         bond.maturity_date = self.find_value_from_label("Scadenza",soup_complete_data)
         
