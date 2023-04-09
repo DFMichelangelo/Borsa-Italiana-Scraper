@@ -118,7 +118,11 @@ class Scraper:
             bonds.append(bond)
             print("--------------------------------")
         
-        next_url = "https://www.borsaitaliana.it" + soup.find("ul", {"class": "m-pagination__nav"}).find("a", title="Successiva", href=True)['href'];
+        next_url = None
+        try:
+            next_url = "https://www.borsaitaliana.it" + soup.find("ul", {"class": "m-pagination__nav"}).find("a", title="Successiva", href=True)['href'];
+        except: 
+            next_url = None
         out = SingleTableDTO()
         out.next_url = next_url
         out.bonds = bonds;
