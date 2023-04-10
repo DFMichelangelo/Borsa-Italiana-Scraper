@@ -42,7 +42,7 @@ class Random_Objects:
     bond.ask_volume =Random_Objects.random_float()
     bond.bid_volume =Random_Objects.random_float()
     bond.bond_type  =Random_Objects.random_string()
-    bond.coupoon_frequency =Random_Objects.random_Frequency()
+    bond.coupon_frequency =Random_Objects.random_Frequency()
     bond.emission_date =Random_Objects.random_datetime()
     bond.maturity_date =Random_Objects.random_datetime()
     bond.payout_desription =Random_Objects.random_string()  

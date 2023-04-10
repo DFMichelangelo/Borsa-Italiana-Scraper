@@ -45,7 +45,7 @@ class Scraper:
         bond.payout_desription = self.find_value_from_label("Descrizione Payout",soup)
         bond.coupon_percentage = self.find_value_from_label_float("Tasso Prossima Cedola",soup)
         bond.emission_date = self.find_value_from_label("Data Inizio Negoziazione",soup)
-        bond.coupoon_frequency = self.find_value_from_label("Periodicità cedola",soup)
+        bond.coupon_frequency = self.find_value_from_label("Periodicità cedola",soup)
 
         #Switch to complete data
         try:

@@ -20,7 +20,7 @@ class FileService():
     for bond in bonds:
         out += bond.isin + ";" + bond.name + ";" + bond.field_type + ";"
         + self.str_safe(bond.coupon_percentage) + ";" 
-        + self.str_safe(bond.coupoon_frequency)+";"
+        + self.str_safe(bond.coupon_frequency)+";"
         + self.str_safe(bond.ask_price)+";" 
         + self.str_safe(bond.bid_price)+";"
         + self.str_safe(bond.ask_volume)+";" 

@@ -19,5 +19,6 @@ python_version = "3.10"
 
 [scripts]
 start = "python main.py"
+start_mypy = "mypy main.py"
 send_report_by_email = "python send_report_by_email.py"
 test = "pytest -s"
