@@ -119,12 +119,15 @@ class Scraper:
             return out_ex
         
         for row in rows:
-            single_row = row.find_all("td")
-            if single_row == None or len(single_row) == 0 : continue
-            href = single_row[0].find("a", href=True)['href']
-            bond = self.analyze_single_bond("https://www.borsaitaliana.it" + href)
-            bonds.append(bond)
-            print("--------------------------------")
+            try:
+                single_row = row.find_all("td")
+                if single_row == None or len(single_row) == 0 : continue
+                href = single_row[0].find("a", href=True)['href']
+                bond = self.analyze_single_bond("https://www.borsaitaliana.it" + href)
+                bonds.append(bond)
+                print("--------------------------------")
+            except:
+                print("Error")
         
         next_url = None
         try:
