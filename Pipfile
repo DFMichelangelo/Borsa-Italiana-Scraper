@@ -13,6 +13,9 @@ pandas = "*"
 [dev-packages]
 pytest = "*"
 mypy = "*"
+pandas-stubs = "*"
+types-beautifulsoup4 = "*"
+types-requests = "*"
 
 [requires]
 python_version = "3.10"

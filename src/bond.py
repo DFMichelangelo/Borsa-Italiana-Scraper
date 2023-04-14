@@ -1,11 +1,25 @@
 from datetime import datetime
 from enum import Enum
-from typing import List
+from typing import Any, List, Union
 
 class Frequency(Enum):
-  TRIMESTRAL=4
-  SEMESTRAL=2
-  ANNUAL=1
+  ANNUAL="ANNUAL"
+  SEMESTRAL="SEMESTRAL"
+  TRIMESTRAL="TRIMESTRAL"
+  UNDEFINED="UNDEFINED"
+  @classmethod
+  def to_annual_frequency(self)->int:
+    if(self == Frequency.ANNUAL): return 1
+    if(self == Frequency.SEMESTRAL): return 2
+    if(self == Frequency.TRIMESTRAL): return 4
+    return 0
+
+  @staticmethod
+  def of(string:Union[str, None]):
+    if(string=="ANNUAL"): return Frequency.ANNUAL
+    if(string=="SEMESTRAL"): return Frequency.SEMESTRAL
+    if(string=="TRIMESTRAL"): return Frequency.TRIMESTRAL
+    return Frequency.UNDEFINED
 
 class SideType(Enum):
   ASK="ASK"
@@ -13,6 +27,11 @@ class SideType(Enum):
 
 class CouponType(Enum):
   FIXED="FIXED"
+  UNDEFINED="UNDEFINED"
+  @staticmethod
+  def of(string:Union[str, None]):
+    if(string=="FIXED"): return CouponType.FIXED
+    else: return CouponType.UNDEFINED
 
 class Bond:
   
@@ -61,19 +80,21 @@ class Bond:
     self.minimun_amount = minimun_amount 
     self.face_value=face_value
 
-  def __init__(self, **kwargs):
+  def __init__(self, **kwargs: Any):
     print(len(kwargs)>0)
     if(len(kwargs)>0):
       self.from_data(**kwargs)
 
-  @staticmethod
-  def get_coupon_dates_by_frequency_type()->List[datetime]:
-    pass
+
+  # TODO 
+  # @staticmethod
+  # def get_coupon_dates_by_frequency_type()->List[datetime]:
+  #   pass
 
 
-
-  def get_next_coupon_date(self)->datetime:
-    now_datetime = datetime.now()
+  # TODO 
+  # def get_next_coupon_date(self)->datetime:
+  #   now_datetime = datetime.now()
 
 
 
@@ -90,7 +111,7 @@ class Bond:
     # can be accounted for the yield calculation
     now_datetime = datetime.now()
     # get the amount of days betwen "now" and the next coupon
-
+    return 10
     # if equal to zero, then it's a coupon day and coupon payment is assumed  
 
 
