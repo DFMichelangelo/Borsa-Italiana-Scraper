@@ -55,13 +55,14 @@ class BondType(Enum):
 class Bond:
 
   def coupon_dates(self, start_date: datetime) -> List[datetime]:
-    interval = self.coupon_frequency.to_annual_frequency()
+    interval = int(12 / self.coupon_frequency.to_annual_frequency())
     if interval <= 0:
       raise Exception(f"Coupon frequency is less or equal to 0: {interval}")
     dates = list(rrule(
-        dtstart=datetime(day=1, month=1, year=start_date.year),
+        dtstart=datetime(day=31, month=12, year=start_date.year - 1),
         until=self.maturity_date,
         freq=MONTHLY,
+        bymonthday=-1,
         interval=interval
     ))
 

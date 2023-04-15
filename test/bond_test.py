@@ -35,7 +35,7 @@ class TestBond:
     bond_yield = bond.calculate_yeld_to_maturity_non_floating_coupon(price_date, SideType.BID)
     assert bond_yield == pytest.approx(0.028766298)  # 0.02876629839284628
 
-  def test_coupon_date(self):
+  def test_coupon_dates(self):
     price_date = datetime(day=15, month=4, year=2023)
     bond = Bond()
     bond.coupon_frequency = CouponFrequency.SEMESTRAL
@@ -43,5 +43,15 @@ class TestBond:
         day=31, month=12, year=price_date.year + 3)
     actual_dates = bond.coupon_dates(price_date)
 
-    for e in actual_dates:
-      assert False
+    expected_dates = [
+        datetime(2023, 6, 30),
+        datetime(2023, 12, 31),
+        datetime(2024, 6, 30),
+        datetime(2024, 12, 31),
+        datetime(2025, 6, 30),
+        datetime(2025, 12, 31),
+        datetime(2026, 6, 30),
+        datetime(2026, 12, 31)
+    ]
+    for (actual_date, expected_date) in zip(actual_dates, expected_dates):
+      assert actual_date == expected_date
