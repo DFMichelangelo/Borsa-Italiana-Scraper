@@ -1,33 +1,35 @@
 from datetime import datetime
 from enum import Enum
-from typing import Any, List, Optional, Union
+from typing import Any, List, Union
+from src.utils import difference_in_years
+from dateutil.rrule import rrule, MONTHLY
 
 
-class Frequency(Enum):
+class CouponFrequency(Enum):
   ANNUAL = "ANNUAL"
   SEMESTRAL = "SEMESTRAL"
   TRIMESTRAL = "TRIMESTRAL"
   UNDEFINED = "UNDEFINED"
 
-  @classmethod
   def to_annual_frequency(self) -> int:
-    if (self == Frequency.ANNUAL):
+    print(self)
+    if (self == CouponFrequency.ANNUAL):
       return 1
-    if (self == Frequency.SEMESTRAL):
+    if (self == CouponFrequency.SEMESTRAL):
       return 2
-    if (self == Frequency.TRIMESTRAL):
+    if (self == CouponFrequency.TRIMESTRAL):
       return 4
     return 0
 
   @staticmethod
   def of(string: Union[str, None]):
     if (string == "ANNUAL"):
-      return Frequency.ANNUAL
+      return CouponFrequency.ANNUAL
     if (string == "SEMESTRAL"):
-      return Frequency.SEMESTRAL
+      return CouponFrequency.SEMESTRAL
     if (string == "TRIMESTRAL"):
-      return Frequency.TRIMESTRAL
-    return Frequency.UNDEFINED
+      return CouponFrequency.TRIMESTRAL
+    return CouponFrequency.UNDEFINED
 
 
 class SideType(Enum):
@@ -37,17 +39,33 @@ class SideType(Enum):
 
 class BondType(Enum):
   FIXED = "FIXED"
+  ZERO_COUPON = "ZERO_COUPON"
   UNDEFINED = "UNDEFINED"
 
   @staticmethod
   def of(string: Union[str, None]):
     if (string == "FIXED"):
       return BondType.FIXED
+    if (string == "ZERO_COUPON"):
+      return BondType.ZERO_COUPON
     else:
       return BondType.UNDEFINED
 
 
 class Bond:
+
+  def coupon_dates(self, start_date: datetime) -> List[datetime]:
+    interval = self.coupon_frequency.to_annual_frequency()
+    if interval <= 0:
+      raise Exception(f"Coupon frequency is less or equal to 0: {interval}")
+    dates = list(rrule(
+        dtstart=datetime(day=1, month=1, year=start_date.year),
+        until=self.maturity_date,
+        freq=MONTHLY,
+        interval=interval
+    ))
+
+    return list(filter(lambda x: x > start_date, dates))
 
   def from_data(self,
                 name: str,  # ok
@@ -61,7 +79,7 @@ class Bond:
                 ask_volume: float,  # ok
                 bid_volume: float,  # ok
                 bond_type: BondType,  # ok
-                coupon_frequency: Frequency,
+                coupon_frequency: CouponFrequency,
                 emission_date: datetime,
                 maturity_date: datetime,
                 payout_desription: str,  # ok
@@ -95,34 +113,44 @@ class Bond:
     self.face_value = face_value
 
   def __init__(self, **kwargs: Any):
-    print(len(kwargs) > 0)
     if (len(kwargs) > 0):
       self.from_data(**kwargs)
 
-  # TODO
-  # @staticmethod
-  # def get_coupon_dates_by_frequency_type()->List[datetime]:
-  #   pass
-
-  # TODO
-  # def get_next_coupon_date(self)->datetime:
-  #   now_datetime = datetime.now()
-
-  def calculate_yeld_to_maturity_fixed_coupon(
-          self, side_type=SideType) -> float:
+  def calculate_yeld_to_maturity_non_floating_coupon(
+          self,
+          price_date: datetime,
+          side_type=SideType
+  ) -> float:
     # check if the liquidation currency is in euro
     if (self.liquidation_currency != "EUR"):
       raise Exception(
           f"Liquidation currency is not EUR, but {self.liquidation_currency}")
-    # check if it's fixed coupoon bond
-    if (self.bond_type != BondType.FIXED):
+    # check if the negotiation currency is in euro
+    if (self.negotiation_currency != "EUR"):
       raise Exception(
-          f"Bond is not of bond type: fixed coupon bond, but {self.bond_type}")
+          f"negotiation currency is not EUR, but {self.negotiation_currency}")
+    # check if it's fixed coupoon bond
+    if (self.bond_type != BondType.FIXED and self.bond_type != BondType.ZERO_COUPON):
+      raise Exception(
+          f"Bond is not of bond type: fixed or zero coupon bond, but {self.bond_type}")
 
-    # check if coupon payments is less than or equal to the
-    # the frequency so that the  unpaid interest has accrued
-    # can be accounted for the yield calculation
-    now_datetime = datetime.now()
-    # get the amount of days betwen "now" and the next coupon
+    bond_price = self.bid_price if side_type == SideType.BID else self.ask_price
+    # check if it's a zero counpon, if yes, use closed form
+    if (self.bond_type == BondType.ZERO_COUPON):
+      years = difference_in_years(price_date, self.maturity_date)
+      return self.get_ytm_zero_coupon_bond(bond_price, self.face_value, years)
+    if (self.bond_type == BondType.FIXED):
+      # check if coupon payments is less than or equal to the
+      # the frequency so that the  unpaid interest has accrued
+      # can be accounted for the yield calculation
+      coupon_dates = self.coupon_dates(price_date)
+      # get the amount of days in years betwen price date and the next coupon
+      days_before_next_coupon = difference_in_years(price_date, coupon_dates[0])
     return 10
+
     # if equal to zero, then it's a coupon day and coupon payment is assumed
+
+  @staticmethod
+  def get_ytm_zero_coupon_bond(bond_price: float, face_value: float, years: float) -> float:
+    ytm = (face_value / bond_price)**(1 / years) - 1
+    return ytm

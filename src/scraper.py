@@ -1,5 +1,5 @@
 import datetime
-from .bond import Bond, BondType, Frequency
+from .bond import Bond, BondType, CouponFrequency
 from .single_table_dto import SingleTableDTO
 from bs4 import BeautifulSoup, Tag
 from typing import Any, List
@@ -93,7 +93,7 @@ class Scraper:
     bond.emission_date = datetime.datetime.strptime(
         self.find_value_from_label(
             "Data Inizio Negoziazione", soup), '%d/%m/%y')
-    bond.coupon_frequency = Frequency.of(
+    bond.coupon_frequency = CouponFrequency.of(
         self.find_value_from_label("Periodicità cedola", soup))
     # Switch to complete data
     try:

@@ -1,6 +1,8 @@
 from datetime import datetime
+from enum import Enum
 import time
-from src.bond import Bond, Frequency
+from typing import Literal, SupportsAbs, TypeVar
+from src.bond import Bond, BondType, CouponFrequency
 import random
 import string
 
@@ -9,7 +11,7 @@ class Random_Objects:
 
   @staticmethod
   def random_string() -> str:
-    return random.choices(string.ascii_lowercase)
+    return ''.join(random.choice(string.ascii_lowercase) for _ in range(8))
 
   @staticmethod
   def random_float() -> float:
@@ -22,11 +24,15 @@ class Random_Objects:
   @staticmethod
   def random_datetime() -> datetime:
     d = random.randint(1, int(time.time()))
-    return datetime.fromtimestamp(d).strftime('%Y-%m-%d')
+    return datetime.fromtimestamp(d)  # .strftime('%Y-%m-%d')
 
   @staticmethod
-  def random_Frequency() -> Frequency:
-    return random.choice(list(Frequency))
+  def random_CouponFrequency() -> CouponFrequency:
+    return random.choice(list(CouponFrequency))
+
+  @staticmethod
+  def random_BondType() -> BondType:
+    return random.choice(list(BondType))
 
   @staticmethod
   def random_bond() -> Bond:
@@ -41,8 +47,8 @@ class Random_Objects:
     bond.bid_price = Random_Objects.random_float()
     bond.ask_volume = Random_Objects.random_float()
     bond.bid_volume = Random_Objects.random_float()
-    bond.bond_type = Random_Objects.random_string()
-    bond.coupon_frequency = Random_Objects.random_Frequency()
+    bond.bond_type = Random_Objects.random_BondType()
+    bond.coupon_frequency = Random_Objects.random_CouponFrequency()
     bond.emission_date = Random_Objects.random_datetime()
     bond.maturity_date = Random_Objects.random_datetime()
     bond.payout_desription = Random_Objects.random_string()

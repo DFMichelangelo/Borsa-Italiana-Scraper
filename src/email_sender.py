@@ -5,6 +5,7 @@ from email.mime.text import MIMEText
 from os import path
 import smtplib
 import ssl
+from contextlib import contextmanager
 
 
 class EmailSender:
@@ -67,20 +68,22 @@ class EmailSender:
     self.server.quit()
 
 
-class EmailSenderResource:
-  def __enter__(self,
-                smtp_server: str,
-                port: int,
-                sender_email: str,
-                password: str
-                ):
-    self.email_sender = EmailSender(
+@contextmanager
+def EmailSenderResource(
+    smtp_server: str,
+    port: int,
+    sender_email: str,
+    password: str
+):
+  email_sender: EmailSender
+  try:
+    email_sender = EmailSender(
         smtp_server,
         port,
         sender_email,
         password
     )
-    return self.email_sender
-
-  def __exit__(self, exc_type, exc_value, traceback):
-    self.email_sender.close_connection()
+    yield email_sender
+  finally:
+    if (email_sender is not None):
+      email_sender.close_connection()
