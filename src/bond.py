@@ -1,8 +1,9 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, List, Union
-from src.utils import difference_in_years
+from src.utils import datetimes_difference_in_years
 from dateutil.rrule import rrule, MONTHLY
+from scipy import optimize
 
 
 class CouponFrequency(Enum):
@@ -130,24 +131,18 @@ class Bond:
     if (self.negotiation_currency != "EUR"):
       raise Exception(
           f"negotiation currency is not EUR, but {self.negotiation_currency}")
-    # check if it's fixed coupoon bond
-    if (self.bond_type != BondType.FIXED and self.bond_type != BondType.ZERO_COUPON):
-      raise Exception(
-          f"Bond is not of bond type: fixed or zero coupon bond, but {self.bond_type}")
 
     bond_price = self.bid_price if side_type == SideType.BID else self.ask_price
     # check if it's a zero counpon, if yes, use closed form
     if (self.bond_type == BondType.ZERO_COUPON):
-      years = difference_in_years(price_date, self.maturity_date)
+      years = datetimes_difference_in_years(price_date, self.maturity_date)
       return self.get_ytm_zero_coupon_bond(bond_price, self.face_value, years)
     if (self.bond_type == BondType.FIXED):
-      # check if coupon payments is less than or equal to the
-      # the frequency so that the  unpaid interest has accrued
-      # can be accounted for the yield calculation
-      coupon_dates = self.coupon_dates(price_date)
-      # get the amount of days in years betwen price date and the next coupon
-      days_before_next_coupon = difference_in_years(price_date, coupon_dates[0])
-    return 10
+      yield_to_maturity = lambda interest_rate: self.get_price(interest_rate, price_date) - bond_price
+      return optimize.newton(yield_to_maturity, 0.0005)
+    else:
+      raise Exception(
+          f"Bond is not of bond type: fixed or zero coupon bond, but {self.bond_type}")
 
     # if equal to zero, then it's a coupon day and coupon payment is assumed
 
@@ -155,3 +150,30 @@ class Bond:
   def get_ytm_zero_coupon_bond(bond_price: float, face_value: float, years: float) -> float:
     ytm = (face_value / bond_price)**(1 / years) - 1
     return ytm
+
+  @staticmethod
+  def get_coupon_present_value(coupon_amount: float, interest_rate: float, years: float) -> float:
+    present_value = coupon_amount / (1 + interest_rate)**years
+    return present_value
+
+  @staticmethod
+  def get_coupons_present_value(coupon_amount: float, interest_rate: float, years_list: List[float]) -> float:
+    present_value = 0
+    for years in years_list:
+      present_value += Bond.get_coupon_present_value(coupon_amount, interest_rate, years)
+    return present_value
+
+  @staticmethod
+  def get_face_value_present_value(face_value: float, interest_rate: float, years: float) -> float:
+    return Bond.get_coupon_present_value(face_value, interest_rate, years)
+
+  def get_price(self, interest_rate: float, price_date: datetime) -> float:
+    coupon_dates = self.coupon_dates(price_date)
+    coupon_dates.pop()
+    years = [datetimes_difference_in_years(price_date, coupon_date) for coupon_date in coupon_dates]
+    total_coupons_pv = Bond.get_coupons_present_value(self.coupon_percentage * self.face_value, interest_rate, years)
+    face_value_pv = Bond.get_face_value_present_value(
+        self.face_value, interest_rate, datetimes_difference_in_years(
+            price_date, self.maturity_date))
+    price = total_coupons_pv + face_value_pv
+    return price
