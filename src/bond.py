@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import Enum
-from typing import Any, List, Union
+from typing import Any, List, Optional, Union
 
 class Frequency(Enum):
   ANNUAL="ANNUAL"
@@ -25,13 +25,13 @@ class SideType(Enum):
   ASK="ASK"
   BID="BID"
 
-class CouponType(Enum):
+class BondType(Enum):
   FIXED="FIXED"
   UNDEFINED="UNDEFINED"
   @staticmethod
   def of(string:Union[str, None]):
-    if(string=="FIXED"): return CouponType.FIXED
-    else: return CouponType.UNDEFINED
+    if(string=="FIXED"): return BondType.FIXED
+    else: return BondType.UNDEFINED
 
 class Bond:
   
@@ -46,7 +46,7 @@ class Bond:
     bid_price:float, #ok
     ask_volume:float, #ok
     bid_volume:float, #ok
-    bond_type:CouponType, #ok
+    bond_type:BondType, #ok
     coupon_frequency:Frequency,
     emission_date: datetime,
     maturity_date: datetime,
@@ -103,7 +103,7 @@ class Bond:
     if(self.liquidation_currency!="EUR"):
       raise Exception(f"Liquidation currency is not EUR, but {self.liquidation_currency}")
     # check if it's fixed coupoon bond
-    if(self.bond_type!=CouponType.FIXED):
+    if(self.bond_type!=BondType.FIXED):
       raise Exception(f"Bond is not of bond type: fixed coupon bond, but {self.bond_type}")
     
     # check if coupon payments is less than or equal to the

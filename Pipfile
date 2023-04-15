@@ -9,6 +9,7 @@ scipy = "*"
 requests = "*"
 html5lib = "*"
 pandas = "*"
+autopep8 = "*"
 
 [dev-packages]
 pytest = "*"

@@ -1,5 +1,5 @@
 import datetime
-from .bond import Bond, CouponType, Frequency
+from .bond import Bond, BondType, Frequency
 from .single_table_dto import SingleTableDTO
 from bs4 import BeautifulSoup, Tag
 from typing import Any, List
@@ -57,7 +57,7 @@ class Scraper:
 
       bond.isin = self.find_value_from_label("Codice Isin",soup)
       bond.subordination = self.find_value_from_label("Subordinazione",soup)
-      bond.bond_type = CouponType.of(self.find_value_from_label("Tipologia",soup))
+      bond.bond_type = BondType.of(self.find_value_from_label("Tipologia",soup))
       bond.bond_structure = self.find_value_from_label("Struttura Bond",soup)
       bond.payout_desription = self.find_value_from_label("Descrizione Payout",soup)
       bond.coupon_percentage = self.find_value_from_label_float("Tasso Prossima Cedola",soup)
