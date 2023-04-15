@@ -9,7 +9,6 @@ scipy = "*"
 requests = "*"
 html5lib = "*"
 pandas = "*"
-autopep8 = "*"
 
 [dev-packages]
 pytest = "*"
@@ -17,6 +16,7 @@ mypy = "*"
 pandas-stubs = "*"
 types-beautifulsoup4 = "*"
 types-requests = "*"
+autopep8 = "*"
 
 [requires]
 python_version = "3.10"
@@ -26,3 +26,4 @@ start = "python main.py"
 start_mypy = "mypy main.py"
 send_report_by_email = "python send_report_by_email.py"
 test = "pytest -s"
+lint ="autopep8 ."
