@@ -55,12 +55,12 @@ class BondType(Enum):
 class Bond:
 
   def get_annual_coupon_percentage(self):
-    annual_frequency=self.coupon_frequency.to_annual_frequency()
-    return (1+self.coupon_percentage)**annual_frequency-1
-  
+    annual_frequency = self.coupon_frequency.to_annual_frequency()
+    return (1 + self.coupon_percentage)**annual_frequency - 1
+
   def get_coupon_percentage_from_annual_coupon_percentage(self, annual_coupon_percentage):
-      annual_frequency=self.coupon_frequency.to_annual_frequency()
-      return (1+annual_coupon_percentage/annual_frequency)**(1/annual_frequency)-1
+    annual_frequency = self.coupon_frequency.to_annual_frequency()
+    return (1 + annual_coupon_percentage)**(1 / annual_frequency) - 1
 
   def coupon_dates(self, start_date: datetime) -> List[datetime]:
     interval = int(12 / self.coupon_frequency.to_annual_frequency())
@@ -160,24 +160,30 @@ class Bond:
     ytm = (self.face_value / bond_price)**(1 / years) - 1
     return ytm
 
-  def get_coupon_present_value(self, interest_rate: float, price_date: datetime) -> float:
-    years = datetimes_difference_in_years(price_date, self.maturity_date)
+  def get_coupon_present_value(self, interest_rate: float, price_date: datetime, coupon_date: datetime) -> float:
+    years = datetimes_difference_in_years(price_date, coupon_date)
     coupon_amount = self.face_value * self.coupon_percentage
     present_value = coupon_amount / (1 + interest_rate)**years
     return present_value
 
-  def get_coupons_present_value(self, interest_rate: float, dates: List[datetime]) -> float:
+  def get_coupons_present_value(
+          self,
+          interest_rate: float,
+          price_date: datetime,
+          coupon_dates: List[datetime]) -> float:
     present_value: float = 0
-    for date in dates:
-      present_value += self.get_coupon_present_value(interest_rate, date)
+    for coupon_date in coupon_dates:
+      present_value += self.get_coupon_present_value(interest_rate, price_date, coupon_date)
     return present_value
 
   def get_face_value_present_value(self, interest_rate: float, price_date: datetime) -> float:
-    return self.get_coupon_present_value(interest_rate, price_date)
+    years = datetimes_difference_in_years(price_date, self.maturity_date)
+    present_value = self.face_value / (1 + interest_rate)**years
+    return present_value
 
   def get_price(self, interest_rate: float, price_date: datetime) -> float:
     coupon_dates = self.coupon_dates(price_date)
-    total_coupons_pv = self.get_coupons_present_value(interest_rate, coupon_dates)
+    total_coupons_pv = self.get_coupons_present_value(interest_rate, price_date, coupon_dates)
     face_value_pv = self.get_face_value_present_value(interest_rate, price_date)
     price = total_coupons_pv + face_value_pv
     return price
