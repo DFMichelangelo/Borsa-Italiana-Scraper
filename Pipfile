@@ -19,6 +19,7 @@ types-beautifulsoup4 = "*"
 types-requests = "*"
 autopep8 = "*"
 types-python-dateutil = "*"
+coverage = "*"
 
 [requires]
 python_version = "3.10"
@@ -30,3 +31,5 @@ start = "pipenv run start_main"
 start_mypy = "mypy ."
 send_report_by_email = "python send_report_by_email.py"
 test = "pytest -s"
+code_coverage = "coverage run --omit test -m pytest"
+code_coverage_report = "coverage html -d coverage_html"

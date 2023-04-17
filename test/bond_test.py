@@ -69,7 +69,7 @@ class TestBond:
     assert price == pytest.approx(bond.face_value,0.01) 
 
 
-  def test_calculate_yield_to_maturity_right_for_fixed_rate(self):
+  def test_calculate_yield_to_maturity_right_for_fixed_rate2(self):
     price_date = datetime(day=1, month=1, year=2023)
     bond = Bond()
     bond.liquidation_currency = "EUR"
