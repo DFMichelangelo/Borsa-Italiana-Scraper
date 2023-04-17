@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
 from typing import Any, List, Union
 from src.utils import datetimes_difference_in_years
@@ -53,6 +53,14 @@ class BondType(Enum):
 
 
 class Bond:
+
+  def get_annual_coupon_percentage(self):
+    annual_frequency=self.coupon_frequency.to_annual_frequency()
+    return (1+self.coupon_percentage)**annual_frequency-1
+  
+  def get_coupon_percentage_from_annual_coupon_percentage(self, annual_coupon_percentage):
+      annual_frequency=self.coupon_frequency.to_annual_frequency()
+      return (1+annual_coupon_percentage/annual_frequency)**(1/annual_frequency)-1
 
   def coupon_dates(self, start_date: datetime) -> List[datetime]:
     interval = int(12 / self.coupon_frequency.to_annual_frequency())
@@ -131,40 +139,45 @@ class Bond:
       raise Exception(
           f"negotiation currency is not EUR, but {self.negotiation_currency}")
 
-    bond_price = self.bid_price if side_type == SideType.BID else self.ask_price
     # check if it's a zero counpon, if yes, use closed form
     if (self.bond_type == BondType.ZERO_COUPON):
-      years = datetimes_difference_in_years(price_date, self.maturity_date)
-      return self.get_ytm_zero_coupon_bond(bond_price, years)
+      return self.get_ytm_zero_coupon_bond(side_type, price_date)
     if (self.bond_type == BondType.FIXED):
-      yield_to_maturity = lambda interest_rate: self.get_price(interest_rate, price_date) - bond_price
+      bond_price = self.bid_price if side_type == SideType.BID else self.ask_price
+      def yield_to_maturity(interest_rate): return self.get_price(interest_rate, price_date) - bond_price
       return optimize.newton(yield_to_maturity, 0.0005)
     else:
       raise Exception(
           f"Bond is not of bond type: fixed or zero coupon bond, but {self.bond_type}")
 
-  def get_ytm_zero_coupon_bond(self, bond_price: float, years: float) -> float:
+  def get_bond_price_by_side(self, side_type: SideType) -> float:
+    bond_price = self.bid_price if side_type == SideType.BID else self.ask_price
+    return bond_price
+
+  def get_ytm_zero_coupon_bond(self, side_type: SideType, price_date: datetime) -> float:
+    years = datetimes_difference_in_years(price_date, self.maturity_date)
+    bond_price = self.get_bond_price_by_side(side_type)
     ytm = (self.face_value / bond_price)**(1 / years) - 1
     return ytm
 
-  def get_coupon_present_value(self, interest_rate: float, years: float) -> float:
+  def get_coupon_present_value(self, interest_rate: float, price_date: datetime) -> float:
+    years = datetimes_difference_in_years(price_date, self.maturity_date)
     coupon_amount = self.face_value * self.coupon_percentage
-    present_value = coupon_amount/ (1 + interest_rate)**years
+    present_value = coupon_amount / (1 + interest_rate)**years
     return present_value
 
-  def get_coupons_present_value(self, interest_rate: float, years_list: List[float]) -> float:
-    present_value:float = 0
-    for years in years_list:
-      present_value += self.get_coupon_present_value(interest_rate, years)
+  def get_coupons_present_value(self, interest_rate: float, dates: List[datetime]) -> float:
+    present_value: float = 0
+    for date in dates:
+      present_value += self.get_coupon_present_value(interest_rate, date)
     return present_value
 
-  def get_face_value_present_value(self, interest_rate: float, years: float) -> float:
-    return self.get_coupon_present_value(interest_rate, years)
+  def get_face_value_present_value(self, interest_rate: float, price_date: datetime) -> float:
+    return self.get_coupon_present_value(interest_rate, price_date)
 
   def get_price(self, interest_rate: float, price_date: datetime) -> float:
     coupon_dates = self.coupon_dates(price_date)
-    years = [datetimes_difference_in_years(price_date, coupon_date) for coupon_date in coupon_dates]
-    total_coupons_pv = self.get_coupons_present_value(interest_rate, years)
-    face_value_pv = self.get_face_value_present_value(interest_rate, datetimes_difference_in_years(price_date, self.maturity_date))
+    total_coupons_pv = self.get_coupons_present_value(interest_rate, coupon_dates)
+    face_value_pv = self.get_face_value_present_value(interest_rate, price_date)
     price = total_coupons_pv + face_value_pv
     return price

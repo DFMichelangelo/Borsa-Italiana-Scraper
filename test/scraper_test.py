@@ -2,7 +2,7 @@ from src.scraper import Scraper
 
 
 # def test_get_data():
-  #Scraper().get_data()
+# Scraper().get_data()
 
 
 # def test_single_bond():

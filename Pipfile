@@ -25,11 +25,15 @@ coverage = "*"
 python_version = "3.10"
 
 [scripts]
-lint ="autopep8 ."
+# https://stackoverflow.com/questions/65648138/how-do-i-run-two-commands-with-pipenv-scripts-using
+_lint ="autopep8 ."
 start_main= "python main.py"
-start = "pipenv run start_main"
-start_mypy = "mypy ."
+_start = "pipenv run start_main"
+_mypy = "mypy ."
+_test = "pytest -s"
+_code_coverage = "coverage run --omit='*test*'  -m pytest"
+_code_coverage_report = "coverage html --omit='*test*'  -d coverage_html"
+_pre_command= "bash -c 'pipenv run _lint && pipenv run _mypy'"
+
+test="bash -c 'pipenv run _pre_command && pipenv run _code_coverage; pipenv run _code_coverage_report'"
 send_report_by_email = "python send_report_by_email.py"
-test = "pytest -s"
-code_coverage = "coverage run --omit test -m pytest"
-code_coverage_report = "coverage html -d coverage_html"
