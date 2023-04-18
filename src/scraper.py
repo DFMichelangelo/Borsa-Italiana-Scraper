@@ -13,6 +13,9 @@ class ElementNotFoundException(Exception):
 
 class Scraper:
 
+  def __init__ (self, amount: int | None):
+    self.amount = amount
+
   def find_n_value_from_label(
           self,
           label: str,
@@ -185,6 +188,10 @@ class Scraper:
     data_start = self.analyze_single_table(url)
     for bond in data_start.bonds:
       bonds.append(bond)
+
+    if self.amount != None and len(bonds) > self.amount:
+        return bonds
+    
     if (data_start.next_url):
       url_rolling = data_start.next_url
       while (url_rolling is not None):
@@ -192,6 +199,10 @@ class Scraper:
         data = self.analyze_single_table(url_rolling)
         for bond in data.bonds:
           bonds.append(bond)
+        
+        if self.amount != None and len(bonds) > self.amount:
+          return bonds
+        
         print("Next url is", data.next_url)
         url_rolling = data.next_url
 
@@ -226,6 +237,12 @@ class Scraper:
         bond = self.analyze_single_bond(
             "https://www.borsaitaliana.it" + href)
         bonds.append(bond)
+
+        if self.amount != None and len(bonds) > self.amount:
+          out = SingleTableDTO()
+          out.bonds = bonds;
+          return out
+        
         print("--------------------------------")
       except Exception as e:
         e.with_traceback();
@@ -257,8 +274,11 @@ class Scraper:
         "https://www.borsaitaliana.it/borsa/obbligazioni/mot/btp/lista.html"]
     bonds: List[Bond] = []
     for url in urls:
+      if self.amount != None and len(bonds) > self.amount:
+        break
+      
       single_bond_list = self.get_data_single_url(url)
       for single in single_bond_list:
         bonds.append(single)
-
+      
     return bonds
