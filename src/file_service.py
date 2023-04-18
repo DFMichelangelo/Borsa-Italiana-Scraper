@@ -27,6 +27,6 @@ class FileService():
     if os.path.exists(final_directory) == False:
       os.mkdir(final_directory)
 
-    with pd.ExcelWriter(path.join(final_directory, "output_scrapring.xlsx")) as writer:
+    with pd.ExcelWriter(os.path.join(final_directory, "output_scrapring.xlsx")) as writer:
       map(lambda singleData: singleData[1].to_excel(
           writer, sheet_name=singleData[0]), data)
