@@ -32,7 +32,7 @@ class Scraper:
       tr_found = found_element.find_parent("tr")
       if tr_found is None:
         raise ElementNotFoundException()
-      return tr_found.find_all("td")[1].find("span").text.replace("\n", "")
+      return tr_found.find_all("td")[1].find("span").text.replace("\n", "").strip()
     except BaseException:
       return ""
 
@@ -90,9 +90,10 @@ class Scraper:
         "Descrizione Payout", soup)
     bond.coupon_percentage = self.find_value_from_label_float(
         "Tasso Prossima Cedola", soup)
-    bond.emission_date = datetime.datetime.strptime(
-        self.find_value_from_label(
-            "Data Inizio Negoziazione", soup), '%d/%m/%y')
+    data_inizio_negoziazione = self.find_value_from_label("Data Inizio Negoziazione", soup)
+    if(data_inizio_negoziazione != None):
+      bond.emission_date = datetime.datetime.strptime(data_inizio_negoziazione, "%d/%m/%y")
+
     bond.coupon_frequency = CouponFrequency.of(
         self.find_value_from_label("Periodicità cedola", soup))
     # Switch to complete data
@@ -106,8 +107,9 @@ class Scraper:
           "https://www.borsaitaliana.it" + complete_data, headers=headers)
       soup_complete_data = BeautifulSoup(
           request_complete_data.text, 'html5lib')
-    except BaseException:
-      print("Error analyzing " + url)
+    except BaseException as e:
+      e.with_traceback()
+      print("Error analyzing " + url, e)
       return bond
 
     bond.negotiation_currency = self.find_value_from_label(
@@ -169,8 +171,9 @@ class Scraper:
     except BaseException:
       bond.bid_volume = 0
 
-    bond.maturity_date = datetime.datetime.strptime(
-        self.find_value_from_label("Scadenza", soup_complete_data), '%d/%m/%y')
+    maturity_date = self.find_value_from_label("Scadenza", soup_complete_data)
+    if(maturity_date != None):
+      bond.maturity_date = datetime.datetime.strptime(maturity_date, "%d/%m/%y")
 
     return bond
 
@@ -208,7 +211,8 @@ class Scraper:
       if (tbody is None or not isinstance(tbody, Tag)):
         raise ElementNotFoundException()
       rows = tbody.find_all("tr")
-    except BaseException:
+    except Exception as e:
+      print("Error", e)
       out_ex = SingleTableDTO()
       out_ex.bonds = bonds
       return out_ex
@@ -223,8 +227,9 @@ class Scraper:
             "https://www.borsaitaliana.it" + href)
         bonds.append(bond)
         print("--------------------------------")
-      except BaseException:
-        print("Error")
+      except Exception as e:
+        e.with_traceback();
+        print("Error", e)
 
     next_url = None
     try:
