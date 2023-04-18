@@ -10,6 +10,7 @@ requests = "*"
 html5lib = "*"
 pandas = "*"
 python-dateutil = "*"
+openpyxl = "*"
 
 [dev-packages]
 pytest = "*"
@@ -27,6 +28,7 @@ python_version = "3.10"
 [scripts]
 # https://stackoverflow.com/questions/65648138/how-do-i-run-two-commands-with-pipenv-scripts-using
 _lint ="autopep8 ."
+lint ="python autopep8 ."
 start_main= "python main.py"
 _start = "pipenv run start_main"
 _mypy = "mypy ."
