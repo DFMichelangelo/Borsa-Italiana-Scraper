@@ -76,6 +76,12 @@ class Bond:
 
     return list(filter(lambda x: x > start_date, dates))
 
+  def assign_ytm(self):
+    now=datetime.today()
+    self.ask_ytm = self.calculate_yeld_to_maturity_non_floating_coupon(now,SideType.ASK)
+    self.bid_ytm = self.calculate_yeld_to_maturity_non_floating_coupon(now,SideType.BID)
+    return self
+
   def from_data(self,
                 name: str,  # ok
                 isin: str,  # ok
