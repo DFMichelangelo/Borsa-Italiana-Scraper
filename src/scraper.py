@@ -3,7 +3,7 @@ from .bond import Bond, BondType, CouponFrequency
 from .single_table_dto import SingleTableDTO
 from bs4 import BeautifulSoup, Tag
 from typing import Any, List
-import urllib
+import traceback
 import requests
 
 
@@ -39,20 +39,12 @@ class Scraper:
     except ElementNotFoundException:
       return ""
 
-  def find_value_from_label_float(
-          self,
-          label: str,
-          soup: BeautifulSoup) -> float:
+  def find_value_from_label_float(self, label: str, soup: BeautifulSoup) -> float:
     try:
-      return float(
-          self.find_value_from_label(
-              label,
-              soup).replace(
-              ".",
-              "").replace(
-              ",",
-              "."))
+      return float(self.find_value_from_label(label, soup).replace(".", "").replace(",", "."))
     except ElementNotFoundException:
+      return 0
+    except ValueError:
       return 0
 
   def find_value_from_label_int(self, label: str, soup: BeautifulSoup) -> int:
@@ -222,7 +214,8 @@ class Scraper:
         raise ElementNotFoundException()
       rows = tbody.find_all("tr")
     except Exception as e:
-      print("Error", e)
+      print("Error: ", e)
+      e
       out_ex = SingleTableDTO()
       out_ex.bonds = bonds
       return out_ex
@@ -244,7 +237,8 @@ class Scraper:
 
         print("--------------------------------")
       except Exception as e:
-        print("Error", e)
+        print("Error: ", e)
+        traceback.print_exc()
 
     next_url = None
     try:

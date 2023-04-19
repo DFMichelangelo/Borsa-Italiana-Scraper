@@ -39,7 +39,6 @@ _code_coverage = "coverage run --omit='test/**' -m pytest"
 _code_coverage_report = "coverage html --omit='test/**' -d coverage_html"
 _pre_command_test= "bash -c 'pipenv run _lint && pipenv run _mypy'"
 _pre_command_start= "bash -c 'pipenv run _lint && pipenv run _mypy_start'"
-
 test="bash -c 'pipenv run _pre_command_test && pipenv run _code_coverage; pipenv run _code_coverage_report'"
 start="bash -c 'pipenv run _pre_command_start && pipenv run start_main'"
 send_report_by_email = "python send_report_by_email.py"
