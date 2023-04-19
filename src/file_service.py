@@ -1,7 +1,9 @@
+import io
 import os
 from .bond import Bond
-from typing import Iterable, List, Tuple
+from typing import Iterable, List, Tuple, TypedDict
 import pandas as pd
+import openpyxl
 
 
 class FileService():
@@ -22,11 +24,16 @@ class FileService():
 
   # this function creates an excel given the pandas dataframes and their name
   @staticmethod
-  def save_excel(data: Iterable[Tuple[str, pd.DataFrame]]) -> None:
+  def save_excel(data: List[Tuple[str, pd.DataFrame]]) -> None:
     final_directory = "out"
-    if os.path.exists(final_directory) == False:
+    final_file_directory = os.path.join(final_directory, "scraped.xlsx")
+    if not os.path.exists(final_directory):
       os.mkdir(final_directory)
+    if os.path.exists(final_file_directory):
+      os.remove(final_file_directory)
+    wb = openpyxl.Workbook()
+    wb.save(final_file_directory)
 
-    with pd.ExcelWriter(os.path.join(final_directory, "output_scrapring.xlsx")) as writer:
-      map(lambda singleData: singleData[1].to_excel(
-          writer, sheet_name=singleData[0]), data)
+    with pd.ExcelWriter(final_file_directory, mode="a", engine='openpyxl') as writer:
+      for (sheet_name, df) in data:
+        df.to_excel(writer, sheet_name=sheet_name)

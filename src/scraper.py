@@ -13,7 +13,7 @@ class ElementNotFoundException(Exception):
 
 class Scraper:
 
-  def __init__ (self, amount: int | None):
+  def __init__(self, amount: int | None = None):
     self.amount = amount
 
   def find_n_value_from_label(
@@ -24,7 +24,7 @@ class Scraper:
     try:
       return soup.find_all(string=label)[index].find_parent(
           "tr").find_all("td")[1].find("span").text.replace("\n", "")
-    except BaseException:
+    except ElementNotFoundException:
       return ""
 
   def find_value_from_label(self, label: str, soup: BeautifulSoup) -> str:
@@ -36,7 +36,7 @@ class Scraper:
       if tr_found is None:
         raise ElementNotFoundException()
       return tr_found.find_all("td")[1].find("span").text.replace("\n", "").strip()
-    except BaseException:
+    except ElementNotFoundException:
       return ""
 
   def find_value_from_label_float(
@@ -52,7 +52,7 @@ class Scraper:
               "").replace(
               ",",
               "."))
-    except BaseException:
+    except ElementNotFoundException:
       return 0
 
   def find_value_from_label_int(self, label: str, soup: BeautifulSoup) -> int:
@@ -65,7 +65,7 @@ class Scraper:
               "").replace(
               ",",
               "."))
-    except BaseException:
+    except ElementNotFoundException:
       return 0
 
   def analyze_single_bond(self, url: str) -> Bond:
@@ -94,7 +94,7 @@ class Scraper:
     bond.coupon_percentage = self.find_value_from_label_float(
         "Tasso Prossima Cedola", soup)
     data_inizio_negoziazione = self.find_value_from_label("Data Inizio Negoziazione", soup)
-    if(data_inizio_negoziazione != None):
+    if (data_inizio_negoziazione is not None):
       bond.emission_date = datetime.datetime.strptime(data_inizio_negoziazione, "%d/%m/%y")
 
     bond.coupon_frequency = CouponFrequency.of(
@@ -110,8 +110,7 @@ class Scraper:
           "https://www.borsaitaliana.it" + complete_data, headers=headers)
       soup_complete_data = BeautifulSoup(
           request_complete_data.text, 'html5lib')
-    except BaseException as e:
-      e.with_traceback()
+    except ElementNotFoundException as e:
       print("Error analyzing " + url, e)
       return bond
 
@@ -135,7 +134,7 @@ class Scraper:
               "").replace(
               ",",
               "."))
-    except BaseException:
+    except ElementNotFoundException:
       bond.ask_price = 0
     try:
       bond.ask_volume = float(
@@ -147,7 +146,7 @@ class Scraper:
               "").replace(
               ",",
               "."))
-    except BaseException:
+    except ElementNotFoundException:
       bond.ask_volume = 0
     try:
       bond.bid_price = float(
@@ -159,7 +158,7 @@ class Scraper:
               "").replace(
               ",",
               "."))
-    except BaseException:
+    except ElementNotFoundException:
       bond.bid_price = 0
     try:
       bond.bid_volume = float(
@@ -171,11 +170,11 @@ class Scraper:
               "").replace(
               ",",
               "."))
-    except BaseException:
+    except ElementNotFoundException:
       bond.bid_volume = 0
 
     maturity_date = self.find_value_from_label("Scadenza", soup_complete_data)
-    if(maturity_date != None):
+    if (maturity_date is not None):
       bond.maturity_date = datetime.datetime.strptime(maturity_date, "%d/%m/%y")
 
     return bond
@@ -189,9 +188,9 @@ class Scraper:
     for bond in data_start.bonds:
       bonds.append(bond)
 
-    if self.amount != None and len(bonds) > self.amount:
-        return bonds
-    
+    if self.amount is not None and len(bonds) > self.amount - 1:
+      return bonds
+
     if (data_start.next_url):
       url_rolling = data_start.next_url
       while (url_rolling is not None):
@@ -199,10 +198,10 @@ class Scraper:
         data = self.analyze_single_table(url_rolling)
         for bond in data.bonds:
           bonds.append(bond)
-        
-        if self.amount != None and len(bonds) > self.amount:
+
+        if self.amount is not None and len(bonds) > self.amount - 1:
           return bonds
-        
+
         print("Next url is", data.next_url)
         url_rolling = data.next_url
 
@@ -238,14 +237,13 @@ class Scraper:
             "https://www.borsaitaliana.it" + href)
         bonds.append(bond)
 
-        if self.amount != None and len(bonds) > self.amount:
+        if self.amount is not None and len(bonds) > self.amount - 1:
           out = SingleTableDTO()
-          out.bonds = bonds;
+          out.bonds = bonds
           return out
-        
+
         print("--------------------------------")
       except Exception as e:
-        e.with_traceback();
         print("Error", e)
 
     next_url = None
@@ -274,11 +272,11 @@ class Scraper:
         "https://www.borsaitaliana.it/borsa/obbligazioni/mot/btp/lista.html"]
     bonds: List[Bond] = []
     for url in urls:
-      if self.amount != None and len(bonds) > self.amount:
+      if self.amount is not None and len(bonds) > self.amount:
         break
-      
+
       single_bond_list = self.get_data_single_url(url)
       for single in single_bond_list:
         bonds.append(single)
-      
+
     return bonds

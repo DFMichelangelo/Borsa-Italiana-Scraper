@@ -26,18 +26,16 @@ class EmailSender:
     self.port = port
     self.password = password
 
-  def send_report_email(self) -> None:
+  def send_report_email(self, receivers) -> None:
     excel_path = path.join("out", "output_scrapring.xlsx")
     # check that the output file exists
     if path.exists(excel_path):
       subject = "An email with attachment from Python"
       body = "This is an email with attachment sent from Python"
-      receiver_email = "your@gmail.com"
       message = MIMEMultipart()
       message["From"] = self.sender_email
-      message["To"] = receiver_email
+      message["To"] = receivers
       message["Subject"] = subject
-      message["Bcc"] = receiver_email
       body = "This is an email with attachment sent from Python"
       message.attach(MIMEText(body, "plain"))
 
@@ -52,7 +50,7 @@ class EmailSender:
       # Add attachment to message and convert message to string
       message.attach(part)
       text = message.as_string()
-      self.server.sendmail(self.sender_email, receiver_email, text)
+      self.server.sendmail(self.sender_email, receivers, text)
 
     else:
       raise FileNotFoundError(f'{excel_path} does not exist')
