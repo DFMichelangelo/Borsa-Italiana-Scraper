@@ -1,7 +1,6 @@
 from .bond import Bond
-from typing import List
 
 
 class SingleTableDTO:
-  bonds: List[Bond]
+  bonds: list[Bond]
   next_url: str

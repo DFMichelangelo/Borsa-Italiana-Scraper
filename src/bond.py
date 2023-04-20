@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import Enum
-from typing import Any, List, Union
+from typing import Any, Union
 from src.utils import datetimes_difference_in_years
 from dateutil.rrule import rrule, MONTHLY
 from scipy import optimize
@@ -62,7 +62,7 @@ class Bond:
     annual_frequency = self.coupon_frequency.to_annual_frequency()
     return (1 + annual_coupon_percentage)**(1 / annual_frequency) - 1
 
-  def coupon_dates(self, start_date: datetime) -> List[datetime]:
+  def coupon_dates(self, start_date: datetime) -> list[datetime]:
     interval = int(12 / self.coupon_frequency.to_annual_frequency())
     if interval <= 0:
       raise Exception(f"Coupon frequency is less or equal to 0: {interval}")
@@ -77,9 +77,9 @@ class Bond:
     return list(filter(lambda x: x > start_date, dates))
 
   def assign_ytm(self):
-    now=datetime.today()
-    self.ask_ytm = self.calculate_yeld_to_maturity_non_floating_coupon(now,SideType.ASK)
-    self.bid_ytm = self.calculate_yeld_to_maturity_non_floating_coupon(now,SideType.BID)
+    now = datetime.today()
+    self.ask_ytm = self.calculate_yeld_to_maturity_non_floating_coupon(now, SideType.ASK)
+    self.bid_ytm = self.calculate_yeld_to_maturity_non_floating_coupon(now, SideType.BID)
     return self
 
   def from_data(self,
@@ -176,7 +176,7 @@ class Bond:
           self,
           interest_rate: float,
           price_date: datetime,
-          coupon_dates: List[datetime]) -> float:
+          coupon_dates: list[datetime]) -> float:
     present_value: float = 0
     for coupon_date in coupon_dates:
       present_value += self.get_coupon_present_value(interest_rate, price_date, coupon_date)

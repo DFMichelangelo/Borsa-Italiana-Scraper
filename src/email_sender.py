@@ -4,22 +4,17 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from os import path
 import smtplib
-import ssl
 from contextlib import contextmanager
 
 
 class EmailSender:
-
-  context = ssl.create_default_context()
 
   def __init__(self,
                smtp_server: str,
                port: int,
                sender_email: str,
                password: str) -> None:
-
-    self.server = smtplib.SMTP(smtp_server, port)
-    self.server.starttls(context=self.context)  # Secure the connection
+    self.server = smtplib.SMTP_SSL(smtp_server, port)
     self.server.login(sender_email, password)
     self.smtp_server = smtp_server
     self.sender_email = sender_email
@@ -27,7 +22,7 @@ class EmailSender:
     self.password = password
 
   def send_report_email(self, receivers) -> None:
-    excel_path = path.join("out", "output_scrapring.xlsx")
+    excel_path = path.join("out", "scraped.xlsx")
     # check that the output file exists
     if path.exists(excel_path):
       subject = "An email with attachment from Python"
@@ -74,6 +69,7 @@ def EmailSenderResource(
     password: str
 ):
   email_sender: EmailSender
+
   try:
     email_sender = EmailSender(
         smtp_server,
@@ -83,5 +79,4 @@ def EmailSenderResource(
     )
     yield email_sender
   finally:
-    if (email_sender is not None):
-      email_sender.close_connection()
+    email_sender.close_connection()

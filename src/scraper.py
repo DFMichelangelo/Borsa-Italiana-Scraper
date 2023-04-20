@@ -2,7 +2,7 @@ import datetime
 from .bond import Bond, BondType, CouponFrequency
 from .single_table_dto import SingleTableDTO
 from bs4 import BeautifulSoup, Tag
-from typing import Any, List
+from typing import Any
 import traceback
 import requests
 
@@ -24,7 +24,8 @@ class Scraper:
     try:
       return soup.find_all(string=label)[index].find_parent(
           "tr").find_all("td")[1].find("span").text.replace("\n", "")
-    except ElementNotFoundException:
+    except (ElementNotFoundException, IndexError):
+      print(f"warning for label '{label}', at index '{index}'", )
       return ""
 
   def find_value_from_label(self, label: str, soup: BeautifulSoup) -> str:
@@ -70,8 +71,8 @@ class Scraper:
     h1_title = soup.find("h1")
     if h1_title is not None:
       a_title = h1_title.find("a")
-      if a_title is not None:
-        name = str(a_title)
+      if a_title is not None and not isinstance(a_title, int):
+        name = str(a_title.text)
         if name is not None:
           bond.name = name
 
@@ -126,7 +127,7 @@ class Scraper:
               "").replace(
               ",",
               "."))
-    except ElementNotFoundException:
+    except (ElementNotFoundException, ValueError):
       bond.ask_price = 0
     try:
       bond.ask_volume = float(
@@ -138,7 +139,7 @@ class Scraper:
               "").replace(
               ",",
               "."))
-    except ElementNotFoundException:
+    except (ElementNotFoundException, ValueError):
       bond.ask_volume = 0
     try:
       bond.bid_price = float(
@@ -150,7 +151,7 @@ class Scraper:
               "").replace(
               ",",
               "."))
-    except ElementNotFoundException:
+    except (ElementNotFoundException, ValueError):
       bond.bid_price = 0
     try:
       bond.bid_volume = float(
@@ -162,7 +163,7 @@ class Scraper:
               "").replace(
               ",",
               "."))
-    except ElementNotFoundException:
+    except (ElementNotFoundException, ValueError):
       bond.bid_volume = 0
 
     maturity_date = self.find_value_from_label("Scadenza", soup_complete_data)
@@ -171,7 +172,7 @@ class Scraper:
 
     return bond
 
-  def get_data_single_url(self, url) -> List[Bond]:
+  def get_data_single_url(self, url) -> list[Bond]:
     print("********************* New URL *********************")
     print(url)
     print("***************************************************")
@@ -201,7 +202,7 @@ class Scraper:
     return bonds
 
   def analyze_single_table(self, url) -> SingleTableDTO:
-    bonds: List[Bond] = []
+    bonds: list[Bond] = []
     try:
       headers = {'Accept-Encoding': 'identity'}
       response = requests.get(url, headers=headers)
@@ -258,13 +259,13 @@ class Scraper:
     out.bonds = bonds
     return out
 
-  def get_data(self) -> List[Bond]:
+  def get_data(self) -> list[Bond]:
     urls = [
         "https://www.borsaitaliana.it/borsa/obbligazioni/mot/obbligazioni-euro/lista.html",
         "https://www.borsaitaliana.it/borsa/obbligazioni/extramot/lista.html",
         "https://www.borsaitaliana.it/borsa/obbligazioni/extramot-procube/lista.html",
         "https://www.borsaitaliana.it/borsa/obbligazioni/mot/btp/lista.html"]
-    bonds: List[Bond] = []
+    bonds: list[Bond] = []
     for url in urls:
       if self.amount is not None and len(bonds) > self.amount:
         break
