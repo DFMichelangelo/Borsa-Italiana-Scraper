@@ -1,6 +1,6 @@
 from datetime import datetime
 import time
-from src.bond import Bond, BondType, CouponFrequency
+from src.bond import Bond
 import random
 import string
 
@@ -25,12 +25,12 @@ class Random_Objects:
     return datetime.fromtimestamp(d)  # .strftime('%Y-%m-%d')
 
   @staticmethod
-  def random_CouponFrequency() -> CouponFrequency:
-    return random.choice(list(CouponFrequency))
+  def random_CouponFrequency() -> Bond.CouponFrequency:
+    return random.choice(list(Bond.CouponFrequency))
 
   @staticmethod
-  def random_BondType() -> BondType:
-    return random.choice(list(BondType))
+  def random_BondType() -> Bond.BondType:
+    return random.choice(list(Bond.BondType))
 
   @staticmethod
   def random_bond() -> Bond:

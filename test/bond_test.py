@@ -1,31 +1,31 @@
 from datetime import datetime, timedelta
 import pytest
-from src.bond import Bond, BondType, CouponFrequency, SideType
+from src.bond import Bond, SideType
 
 
 class TestBond:
 
   def test_CouponFrequency_to_annual_frequency(self):
-    assert CouponFrequency.ANNUAL.to_annual_frequency() == 1
-    assert CouponFrequency.SEMESTRAL.to_annual_frequency() == 2
-    assert CouponFrequency.TRIMESTRAL.to_annual_frequency() == 4
-    assert CouponFrequency.UNDEFINED.to_annual_frequency() == 0
+    assert Bond.CouponFrequency.ANNUAL.to_annual_frequency() == 1
+    assert Bond.CouponFrequency.SEMESTRAL.to_annual_frequency() == 2
+    assert Bond.CouponFrequency.TRIMESTRAL.to_annual_frequency() == 4
+    assert Bond.CouponFrequency.UNDEFINED.to_annual_frequency() == 0
 
   def test_CouponFrequency_of(self):
-    assert CouponFrequency.of("ANNUAL") == CouponFrequency.ANNUAL
-    assert CouponFrequency.of("SEMESTRAL") == CouponFrequency.SEMESTRAL
-    assert CouponFrequency.of("TRIMESTRAL") == CouponFrequency.TRIMESTRAL
-    assert CouponFrequency.of("UNDEFINED") == CouponFrequency.UNDEFINED
+    assert Bond.CouponFrequency.of("ANNUAL") == Bond.CouponFrequency.ANNUAL
+    assert Bond.CouponFrequency.of("SEMESTRAL") == Bond.CouponFrequency.SEMESTRAL
+    assert Bond.CouponFrequency.of("TRIMESTRAL") == Bond.CouponFrequency.TRIMESTRAL
+    assert Bond.CouponFrequency.of("UNDEFINED") == Bond.CouponFrequency.UNDEFINED
 
   def test_BondType_of(self):
-    assert BondType.of("FIXED") == BondType.FIXED
-    assert BondType.of("ZERO_COUPON") == BondType.ZERO_COUPON
-    assert BondType.of("UNDEFINED") == BondType.UNDEFINED
+    assert Bond.BondType.of("FIXED") == Bond.BondType.FIXED
+    assert Bond.BondType.of("ZERO_COUPON") == Bond.BondType.ZERO_COUPON
+    assert Bond.BondType.of("UNDEFINED") == Bond.BondType.UNDEFINED
 
   def test_coupon_dates(self):
     price_date = datetime(day=15, month=4, year=2023)
     bond = Bond()
-    bond.coupon_frequency = CouponFrequency.SEMESTRAL
+    bond.coupon_frequency = Bond.CouponFrequency.SEMESTRAL
     bond.maturity_date = datetime(
         day=31, month=12, year=price_date.year + 3)
     actual_dates = bond.coupon_dates(price_date)
@@ -54,14 +54,14 @@ class TestBond:
 
   def test_get_annual_coupon_percentage(self):
     bond = Bond()
-    bond.coupon_frequency = CouponFrequency.SEMESTRAL
+    bond.coupon_frequency = Bond.CouponFrequency.SEMESTRAL
     bond.coupon_percentage = 0.02
     annual_coupon_percentage = bond.get_annual_coupon_percentage()
     assert annual_coupon_percentage == pytest.approx(0.0404)
 
   def test_get_coupon_percentage_from_annual_coupon_percentage(self):
     bond = Bond()
-    bond.coupon_frequency = CouponFrequency.SEMESTRAL
+    bond.coupon_frequency = Bond.CouponFrequency.SEMESTRAL
     annual_coupon_percentage = 0.0404
     coupon_percentage = bond.get_coupon_percentage_from_annual_coupon_percentage(annual_coupon_percentage)
     assert coupon_percentage == pytest.approx(0.02)
@@ -91,12 +91,12 @@ class TestBond:
     bond.liquidation_currency = "EUR"
     bond.negotiation_currency = "EUR"
     bond.bid_price = 100
-    bond.bond_type = BondType.FIXED
+    bond.bond_type = Bond.BondType.FIXED
     bond.face_value = 100
     bond.maturity_date = datetime(
         day=1, month=1, year=2026)
     bond.coupon_percentage = 0.02
-    bond.coupon_frequency = CouponFrequency.SEMESTRAL
+    bond.coupon_frequency = Bond.CouponFrequency.SEMESTRAL
 
     bond_yield = bond.calculate_yeld_to_maturity_non_floating_coupon(price_date, SideType.BID)
     assert bond_yield == pytest.approx(0.0404, 0.001)
@@ -107,7 +107,7 @@ class TestBond:
     bond.liquidation_currency = "EUR"
     bond.negotiation_currency = "EUR"
     bond.bid_price = 90
-    bond.bond_type = BondType.ZERO_COUPON
+    bond.bond_type = Bond.BondType.ZERO_COUPON
     bond.face_value = 100
     bond.maturity_date = datetime(
         day=31, month=12, year=2026)
@@ -120,7 +120,7 @@ class TestBond:
     interest_rate = 0.0404
     bond = Bond()
     bond.coupon_percentage = 0.02
-    bond.coupon_frequency = CouponFrequency.SEMESTRAL
+    bond.coupon_frequency = Bond.CouponFrequency.SEMESTRAL
     bond.face_value = 100
     bond.maturity_date = datetime(day=31, month=12, year=2024)
     price = bond.get_price(interest_rate, price_date)

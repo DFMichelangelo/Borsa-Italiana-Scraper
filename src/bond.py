@@ -6,53 +6,51 @@ from dateutil.rrule import rrule, MONTHLY
 from scipy import optimize
 
 
-class CouponFrequency(Enum):
-  ANNUAL = "ANNUAL"
-  SEMESTRAL = "SEMESTRAL"
-  TRIMESTRAL = "TRIMESTRAL"
-  UNDEFINED = "UNDEFINED"
-
-  def to_annual_frequency(self) -> int:
-    if (self == CouponFrequency.ANNUAL):
-      return 1
-    if (self == CouponFrequency.SEMESTRAL):
-      return 2
-    if (self == CouponFrequency.TRIMESTRAL):
-      return 4
-    return 0
-
-  @staticmethod
-  def of(string: Union[str, None]):
-    if (string == "ANNUAL"):
-      return CouponFrequency.ANNUAL
-    if (string == "SEMESTRAL"):
-      return CouponFrequency.SEMESTRAL
-    if (string == "TRIMESTRAL"):
-      return CouponFrequency.TRIMESTRAL
-    return CouponFrequency.UNDEFINED
-
-
 class SideType(Enum):
   ASK = "ASK"
   BID = "BID"
 
 
-class BondType(Enum):
-  FIXED = "FIXED"
-  ZERO_COUPON = "ZERO_COUPON"
-  UNDEFINED = "UNDEFINED"
-
-  @staticmethod
-  def of(string: Union[str, None]):
-    if (string == "FIXED"):
-      return BondType.FIXED
-    if (string == "ZERO_COUPON"):
-      return BondType.ZERO_COUPON
-    else:
-      return BondType.UNDEFINED
-
-
 class Bond:
+
+  class CouponFrequency(Enum):
+    ANNUAL = "ANNUAL"
+    SEMESTRAL = "SEMESTRAL"
+    TRIMESTRAL = "TRIMESTRAL"
+    UNDEFINED = "UNDEFINED"
+
+    def to_annual_frequency(self) -> int:
+      if (self == Bond.CouponFrequency.ANNUAL):
+        return 1
+      if (self == Bond.CouponFrequency.SEMESTRAL):
+        return 2
+      if (self == Bond.CouponFrequency.TRIMESTRAL):
+        return 4
+      return 0
+
+    @staticmethod
+    def of(string: Union[str, None]):
+      if (string == "ANNUAL"):
+        return Bond.CouponFrequency.ANNUAL
+      if (string == "SEMESTRAL"):
+        return Bond.CouponFrequency.SEMESTRAL
+      if (string == "TRIMESTRAL"):
+        return Bond.CouponFrequency.TRIMESTRAL
+      return Bond.CouponFrequency.UNDEFINED
+
+  class BondType(Enum):
+    FIXED = "FIXED"
+    ZERO_COUPON = "ZERO_COUPON"
+    UNDEFINED = "UNDEFINED"
+
+    @staticmethod
+    def of(string: Union[str, None]):
+      if (string == "FIXED"):
+        return Bond.BondType.FIXED
+      if (string == "ZERO_COUPON"):
+        return Bond.BondType.ZERO_COUPON
+      else:
+        return Bond.BondType.UNDEFINED
 
   def get_annual_coupon_percentage(self):
     annual_frequency = self.coupon_frequency.to_annual_frequency()
@@ -94,7 +92,9 @@ class Bond:
                 ask_volume: float,  # ok
                 bid_volume: float,  # ok
                 bond_type: BondType,  # ok
+                bond_type_raw: str,
                 coupon_frequency: CouponFrequency,
+                coupon_frequency_raw: str,
                 emission_date: datetime,
                 maturity_date: datetime,
                 payout_desription: str,  # ok
@@ -126,6 +126,8 @@ class Bond:
     self.borsa_italiana_gross_yield = borsa_italiana_gross_yield
     self.minimun_amount = minimun_amount
     self.face_value = face_value
+    self.bond_type_raw = bond_type_raw
+    self.coupon_frequency_raw = coupon_frequency_raw
 
   def __init__(self, **kwargs: Any):
     if (len(kwargs) > 0):
@@ -146,9 +148,9 @@ class Bond:
           f"negotiation currency is not EUR, but {self.negotiation_currency}")
 
     # check if it's a zero counpon, if yes, use closed form
-    if (self.bond_type == BondType.ZERO_COUPON):
+    if (self.bond_type == Bond.BondType.ZERO_COUPON):
       return self.get_ytm_zero_coupon_bond(side_type, price_date)
-    if (self.bond_type == BondType.FIXED):
+    if (self.bond_type == Bond.BondType.FIXED):
       bond_price = self.bid_price if side_type == SideType.BID else self.ask_price
       def yield_to_maturity(interest_rate): return self.get_price(interest_rate, price_date) - bond_price
       return optimize.newton(yield_to_maturity, 0.0005)

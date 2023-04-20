@@ -1,5 +1,5 @@
-from src.bond import BondType
-from src.email_sender import EmailSender, EmailSenderResource
+from src.bond import Bond
+from src.email_sender import EmailSender
 from .scraper import Scraper
 from .file_service import FileService
 import os
@@ -7,10 +7,11 @@ import os
 
 def start():
   print("--- Scraping Data ---")
-  scraper = Scraper(1)
+  scraper = Scraper()
   bonds = scraper.get_data()
   print("--- Preparing Data  ---")
-  fixed_bonds = [bond for bond in bonds if bond.bond_type == BondType.FIXED or bond.bond_type == BondType.ZERO_COUPON]
+  fixed_bonds = [bond for bond in bonds if bond.bond_type ==
+                 Bond.BondType.FIXED or bond.bond_type == Bond.BondType.ZERO_COUPON]
   fixed_bonds_with_ytm = list(map(lambda bond: bond.assign_ytm(), fixed_bonds))
 
   # Get bonds zero coupon and fixed rate and assign a YTM.

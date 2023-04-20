@@ -1,5 +1,5 @@
 import datetime
-from .bond import Bond, BondType, CouponFrequency
+from .bond import Bond
 from .single_table_dto import SingleTableDTO
 from bs4 import BeautifulSoup, Tag
 from typing import Any
@@ -78,8 +78,9 @@ class Scraper:
 
     bond.isin = self.find_value_from_label("Codice Isin", soup)
     bond.subordination = self.find_value_from_label("Subordinazione", soup)
-    bond.bond_type = BondType.of(
+    bond.bond_type = Bond.BondType.of(
         self.find_value_from_label("Tipologia", soup))
+    bond.bond_type_raw = self.find_value_from_label("Tipologia", soup)
     bond.bond_structure = self.find_value_from_label(
         "Struttura Bond", soup)
     bond.payout_desription = self.find_value_from_label(
@@ -90,8 +91,9 @@ class Scraper:
     if (data_inizio_negoziazione is not None):
       bond.emission_date = datetime.datetime.strptime(data_inizio_negoziazione, "%d/%m/%y")
 
-    bond.coupon_frequency = CouponFrequency.of(
+    bond.coupon_frequency = Bond.CouponFrequency.of(
         self.find_value_from_label("Periodicità cedola", soup))
+    bond.coupon_frequency_raw = self.find_value_from_label("Periodicità cedola", soup)
     # Switch to complete data
     try:
       ul = soup.find("ul", {"class": "tab-nav-wrapper"})
