@@ -29,8 +29,8 @@ class Random_Objects:
     return random.choice(list(Bond.CouponFrequency))
 
   @staticmethod
-  def random_BondType() -> Bond.BondType:
-    return random.choice(list(Bond.BondType))
+  def random_BondStructure() -> Bond.BondStructure:
+    return random.choice(list(Bond.BondStructure))
 
   @staticmethod
   def random_bond() -> Bond:
@@ -45,12 +45,12 @@ class Random_Objects:
     bond.bid_price = Random_Objects.random_float()
     bond.ask_volume = Random_Objects.random_float()
     bond.bid_volume = Random_Objects.random_float()
-    bond.bond_type = Random_Objects.random_BondType()
+    bond.bond_structure = Random_Objects.random_BondStructure()
     bond.coupon_frequency = Random_Objects.random_CouponFrequency()
     bond.emission_date = Random_Objects.random_datetime()
     bond.maturity_date = Random_Objects.random_datetime()
     bond.payout_desription = Random_Objects.random_string()
-    bond.bond_structure = Random_Objects.random_string()
+    bond.bond_type = Random_Objects.random_string()
     bond.subordination = Random_Objects.random_string()
     bond.coupon_percentage = Random_Objects.random_float()
     bond.borsa_italiana_gross_yield = Random_Objects.random_float()

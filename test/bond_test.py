@@ -17,10 +17,10 @@ class TestBond:
     assert Bond.CouponFrequency.of("TRIMESTRAL") == Bond.CouponFrequency.TRIMESTRAL
     assert Bond.CouponFrequency.of("UNDEFINED") == Bond.CouponFrequency.UNDEFINED
 
-  def test_BondType_of(self):
-    assert Bond.BondType.of("FIXED") == Bond.BondType.FIXED
-    assert Bond.BondType.of("ZERO_COUPON") == Bond.BondType.ZERO_COUPON
-    assert Bond.BondType.of("UNDEFINED") == Bond.BondType.UNDEFINED
+  def test_BondStructure_of(self):
+    assert Bond.BondStructure.of("FIXED") == Bond.BondStructure.FIXED
+    assert Bond.BondStructure.of("ZERO_COUPON") == Bond.BondStructure.ZERO_COUPON
+    assert Bond.BondStructure.of("UNDEFINED") == Bond.BondStructure.UNDEFINED
 
   def test_coupon_dates(self):
     price_date = datetime(day=15, month=4, year=2023)
@@ -91,7 +91,7 @@ class TestBond:
     bond.liquidation_currency = "EUR"
     bond.negotiation_currency = "EUR"
     bond.bid_price = 100
-    bond.bond_type = Bond.BondType.FIXED
+    bond.bond_structure = Bond.BondStructure.FIXED
     bond.face_value = 100
     bond.maturity_date = datetime(
         day=1, month=1, year=2026)
@@ -107,7 +107,7 @@ class TestBond:
     bond.liquidation_currency = "EUR"
     bond.negotiation_currency = "EUR"
     bond.bid_price = 90
-    bond.bond_type = Bond.BondType.ZERO_COUPON
+    bond.bond_structure = Bond.BondStructure.ZERO_COUPON
     bond.face_value = 100
     bond.maturity_date = datetime(
         day=31, month=12, year=2026)

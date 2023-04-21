@@ -5,6 +5,11 @@ from bs4 import BeautifulSoup, Tag
 from typing import Any
 import traceback
 import requests
+from selenium import webdriver
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
 
 
 class ElementNotFoundException(Exception):
@@ -15,6 +20,10 @@ class Scraper:
 
   def __init__(self, amount: int | None = None):
     self.amount = amount
+    chrome_options = Options()
+    # chrome_options.add_argument("--headless")
+    driver = webdriver.Chrome(options=chrome_options)
+    self.driver = driver
 
   def find_n_value_from_label(
           self,
@@ -78,11 +87,12 @@ class Scraper:
 
     bond.isin = self.find_value_from_label("Codice Isin", soup)
     bond.subordination = self.find_value_from_label("Subordinazione", soup)
-    bond.bond_type = Bond.BondType.of(
-        self.find_value_from_label("Tipologia", soup))
-    bond.bond_type_raw = self.find_value_from_label("Tipologia", soup)
-    bond.bond_structure = self.find_value_from_label(
+    bond.bond_structure = Bond.BondStructure.of(
+        self.find_value_from_label(
+            "Struttura Bond", soup))
+    bond.bond_structure_raw = self.find_value_from_label(
         "Struttura Bond", soup)
+    bond.bond_type = self.find_value_from_label("Tipologia", soup)
     bond.payout_desription = self.find_value_from_label(
         "Descrizione Payout", soup)
     bond.coupon_percentage = self.find_value_from_label_float(
@@ -179,46 +189,64 @@ class Scraper:
     print(url)
     print("***************************************************")
     bonds = []
-    data_start = self.analyze_single_table(url)
+    data_start = self.analyze_single_table(url, None)
     for bond in data_start.bonds:
       bonds.append(bond)
 
     if self.amount is not None and len(bonds) > self.amount - 1:
       return bonds
 
-    if (data_start.next_url):
-      url_rolling = data_start.next_url
+    if (data_start.next_url_to_click):
+      url_rolling = data_start.next_url_to_click
       while (url_rolling is not None):
         print("Start cycle", url_rolling)
-        data = self.analyze_single_table(url_rolling)
+        data = self.analyze_single_table(None, url_rolling)
         for bond in data.bonds:
           bonds.append(bond)
 
         if self.amount is not None and len(bonds) > self.amount - 1:
           return bonds
 
-        print("Next url is", data.next_url)
-        url_rolling = data.next_url
+        print("Next url is", data.next_url_to_click)
+        url_rolling = data.next_url_to_click
 
     print("End")
     return bonds
 
-  def analyze_single_table(self, url) -> SingleTableDTO:
+  def analyze_single_table(self, url, url_to_click=None) -> SingleTableDTO:
     bonds: list[Bond] = []
     try:
-      headers = {'Accept-Encoding': 'identity'}
-      response = requests.get(url, headers=headers)
-      soup = BeautifulSoup(response.text, 'html5lib')
-      table = soup.find("table")
+      # navigate to the webpage
+      if url_to_click is None and url is not None:
+        self.driver.get(url)
+
+      # wait for the "Tipo" dropdown to load and select "Obbligazioni"
+      wait = WebDriverWait(self.driver, 3)
+      button = wait.until(
+          EC.element_to_be_clickable(
+              (By.XPATH, "//span[contains(text(),'Accetta tutti i cookie di profilazione')]")))
+      button.click()
+      wait.until(EC.visibility_of_element_located((By.ID, "tableResults")))
+      ul_element = wait.until(EC.presence_of_element_located((By.CLASS_NAME, "m-pagination__nav")))
+      link_element = wait.until(
+          EC.element_to_be_clickable(
+              (By.XPATH, "//a[contains(title(),'Successiva')]")))
+
+      soup = BeautifulSoup(self.driver.page_source, 'html5lib')
+      tableResults = wait.until(EC.visibility_of_element_located((By.TAG_NAME, "table")))
+      table_selenium = tableResults.get_attribute("outerHTML")
+
+      soup_table = BeautifulSoup(table_selenium, 'html5lib')
+      table = soup_table.find("table")
+
       if (table is None):
         raise ElementNotFoundException()
-      tbody = soup.find("tbody")
+      tbody = soup_table.find("tbody")
       if (tbody is None or not isinstance(tbody, Tag)):
         raise ElementNotFoundException()
       rows = tbody.find_all("tr")
     except Exception as e:
       print("Error: ", e)
-      e
       out_ex = SingleTableDTO()
       out_ex.bonds = bonds
       return out_ex
@@ -238,7 +266,6 @@ class Scraper:
           out.bonds = bonds
           return out
 
-        print("--------------------------------")
       except Exception as e:
         print("Error: ", e)
         traceback.print_exc()
@@ -246,27 +273,31 @@ class Scraper:
     next_url = None
     try:
       # TODO Remove Any
-      ul: Any = soup.find("ul", {"class": "m-pagination__nav"})
-      if (ul is None):
-        raise ElementNotFoundException()
-      a = ul.find("a", title="Successiva", href=True)
+     # ul: Any = soup.find("ul", {"class": "m-pagination__nav"})
+      # if (ul is None):
+      #  raise ElementNotFoundException()
+      # a = ul.find("a", title="Successiva", href=True)
 
-      if (a is None):
+      # if (a is None):
+      if (link_element is None):
         raise ElementNotFoundException()
-      next_url = "https://www.borsaitaliana.it" + a.get('href')
+      next_url = link_element
+
     except BaseException:
       next_url = None
     out = SingleTableDTO()
-    out.next_url = next_url if next_url is not None else None
+    out.next_url_to_click = next_url if next_url is not None else None
     out.bonds = bonds
     return out
 
   def get_data(self) -> list[Bond]:
     urls = [
-        "https://www.borsaitaliana.it/borsa/obbligazioni/mot/obbligazioni-euro/lista.html",
-        "https://www.borsaitaliana.it/borsa/obbligazioni/extramot/lista.html",
-        "https://www.borsaitaliana.it/borsa/obbligazioni/extramot-procube/lista.html",
-        "https://www.borsaitaliana.it/borsa/obbligazioni/mot/btp/lista.html"]
+        "https://www.borsaitaliana.it/borsa/obbligazioni/ricerca-avanzata.html",
+        # "https://www.borsaitaliana.it/borsa/obbligazioni/mot/obbligazioni-euro/lista.html",
+        # "https://www.borsaitaliana.it/borsa/obbligazioni/extramot/lista.html",
+        # "https://www.borsaitaliana.it/borsa/obbligazioni/extramot-procube/lista.html",
+        # "https://www.borsaitaliana.it/borsa/obbligazioni/mot/btp/lista.html"
+    ]
     bonds: list[Bond] = []
     for url in urls:
       if self.amount is not None and len(bonds) > self.amount:
@@ -275,5 +306,5 @@ class Scraper:
       single_bond_list = self.get_data_single_url(url)
       for single in single_bond_list:
         bonds.append(single)
-
+    self.driver.close()
     return bonds

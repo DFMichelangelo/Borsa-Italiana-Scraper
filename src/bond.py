@@ -38,7 +38,7 @@ class Bond:
         return Bond.CouponFrequency.TRIMESTRAL
       return Bond.CouponFrequency.UNDEFINED
 
-  class BondType(Enum):
+  class BondStructure(Enum):
     FIXED = "FIXED"
     ZERO_COUPON = "ZERO_COUPON"
     UNDEFINED = "UNDEFINED"
@@ -46,11 +46,11 @@ class Bond:
     @staticmethod
     def of(string: Union[str, None]):
       if (string == "FIXED"):
-        return Bond.BondType.FIXED
+        return Bond.BondStructure.FIXED
       if (string == "ZERO_COUPON"):
-        return Bond.BondType.ZERO_COUPON
+        return Bond.BondStructure.ZERO_COUPON
       else:
-        return Bond.BondType.UNDEFINED
+        return Bond.BondStructure.UNDEFINED
 
   def get_annual_coupon_percentage(self):
     annual_frequency = self.coupon_frequency.to_annual_frequency()
@@ -91,14 +91,14 @@ class Bond:
                 bid_price: float,  # ok
                 ask_volume: float,  # ok
                 bid_volume: float,  # ok
-                bond_type: BondType,  # ok
-                bond_type_raw: str,
+                bond_structure: BondStructure,  # ok
+                bond_structure_raw: str,
                 coupon_frequency: CouponFrequency,
                 coupon_frequency_raw: str,
                 emission_date: datetime,
                 maturity_date: datetime,
                 payout_desription: str,  # ok
-                bond_structure: str,
+                bond_type: str,
                 subordination: str,  # ok
                 coupon_percentage: float,  # ok
                 borsa_italiana_gross_yield: float,
@@ -115,18 +115,18 @@ class Bond:
     self.bid_price = bid_price
     self.ask_volume = ask_volume
     self.bid_volume = bid_volume
-    self.bond_type = bond_type
+    self.bond_structure = bond_structure
     self.coupon_frequency = coupon_frequency
     self.emission_date = emission_date
     self.maturity_date = maturity_date
     self.payout_desription = payout_desription
-    self.bond_structure = bond_structure
+    self.bond_type = bond_type
     self.subordination = subordination
     self.coupon_percentage = coupon_percentage
     self.borsa_italiana_gross_yield = borsa_italiana_gross_yield
     self.minimun_amount = minimun_amount
     self.face_value = face_value
-    self.bond_type_raw = bond_type_raw
+    self.bond_structure_raw = bond_structure_raw
     self.coupon_frequency_raw = coupon_frequency_raw
 
   def __init__(self, **kwargs: Any):
@@ -148,15 +148,15 @@ class Bond:
           f"negotiation currency is not EUR, but {self.negotiation_currency}")
 
     # check if it's a zero counpon, if yes, use closed form
-    if (self.bond_type == Bond.BondType.ZERO_COUPON):
+    if (self.bond_structure == Bond.BondStructure.ZERO_COUPON):
       return self.get_ytm_zero_coupon_bond(side_type, price_date)
-    if (self.bond_type == Bond.BondType.FIXED):
+    if (self.bond_structure == Bond.BondStructure.FIXED):
       bond_price = self.bid_price if side_type == SideType.BID else self.ask_price
       def yield_to_maturity(interest_rate): return self.get_price(interest_rate, price_date) - bond_price
       return optimize.newton(yield_to_maturity, 0.0005)
     else:
       raise Exception(
-          f"Bond is not of bond type: fixed or zero coupon bond, but {self.bond_type}")
+          f"Bond is not of bond type: fixed or zero coupon bond, but {self.bond_structure}")
 
   def get_bond_price_by_side(self, side_type: SideType) -> float:
     bond_price = self.bid_price if side_type == SideType.BID else self.ask_price

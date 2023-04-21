@@ -11,6 +11,9 @@ html5lib = "*"
 pandas = "*"
 python-dateutil = "*"
 openpyxl = "*"
+asyncio = "*"
+selenium = "*"
+requests-html = "*"
 
 [dev-packages]
 pytest = "*"
