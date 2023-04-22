@@ -1,4 +1,4 @@
-name: Run code and send an email with results
+name: Run code and send email with results
 on:
   schedule:
     # https://crontab.guru/#5_4_*_*_1,2,3,4,5
@@ -20,4 +20,4 @@ jobs:
           pip install --user pipenv
           pipenv install
       - name: execute python script # run main.py
-        run: pipenv run main.py
+        run: pipenv run start
