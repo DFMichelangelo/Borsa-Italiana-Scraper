@@ -18,7 +18,11 @@ jobs:
           echo "Should Send Email: $SHOULD_SEND_EMAIL"
         env:
           SHOULD_SEND_EMAIL: ${{ inputs.should_send_email }}
-      - uses: logikal-io/install-chrome@v1
+      - name: Setup Chrome
+        uses: browser-actions/setup-chrome@v1.2.0
+      - run: |
+          echo Installed chromium version: ${{ steps.setup-chrome.outputs.chrome-version }}
+          ${{ steps.setup-chrome.outputs.chrome-path }} --version
       - name: checkout repo content
         uses: actions/checkout@v2 # checkout the repository content
       - name: setup python
