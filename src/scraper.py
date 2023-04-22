@@ -10,7 +10,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
-
+# if it does not work, use this link with bs4:
+#https://www.borsaitaliana.it/borsa/obbligazioni/advanced-search.html?size=&lang=it&page=30 
 
 class ElementNotFoundException(Exception):
   pass
@@ -21,6 +22,8 @@ class Scraper:
   def __init__(self, amount: int | None = None):
     self.amount = amount
     chrome_options = Options()
+    chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
+
     # chrome_options.add_argument("--headless")
     driver = webdriver.Chrome(options=chrome_options)
     self.driver = driver
@@ -190,8 +193,9 @@ class Scraper:
     print("***************************************************")
     bonds = []
     data_start = self.analyze_single_table(url, None)
-    for bond in data_start.bonds:
-      bonds.append(bond)
+    bonds += data_start.bonds
+    # for bond in data_start.bonds:
+    #  bonds.append(bond)
 
     if self.amount is not None and len(bonds) > self.amount - 1:
       return bonds
@@ -201,8 +205,9 @@ class Scraper:
       while (url_rolling is not None):
         print("Start cycle", url_rolling)
         data = self.analyze_single_table(None, url_rolling)
-        for bond in data.bonds:
-          bonds.append(bond)
+        bonds += data_start.bonds
+        # for bond in data.bonds:
+        #  bonds.append(bond)
 
         if self.amount is not None and len(bonds) > self.amount - 1:
           return bonds
@@ -219,20 +224,24 @@ class Scraper:
       # navigate to the webpage
       if url_to_click is None and url is not None:
         self.driver.get(url)
+      else:
+        url_to_click.click()
 
       # wait for the "Tipo" dropdown to load and select "Obbligazioni"
-      wait = WebDriverWait(self.driver, 3)
-      button = wait.until(
-          EC.element_to_be_clickable(
-              (By.XPATH, "//span[contains(text(),'Accetta tutti i cookie di profilazione')]")))
-      button.click()
+      wait = WebDriverWait(self.driver, 5)
+      if url is not None:
+        button = wait.until(
+            EC.element_to_be_clickable(
+                (By.XPATH, "//span[contains(text(),'Accetta tutti i cookie di profilazione')]")))
+        button.click()
       wait.until(EC.visibility_of_element_located((By.ID, "tableResults")))
       ul_element = wait.until(EC.presence_of_element_located((By.CLASS_NAME, "m-pagination__nav")))
       link_element = wait.until(
-          EC.element_to_be_clickable(
-              (By.XPATH, "//a[contains(title(),'Successiva')]")))
+          EC.presence_of_element_located(
+              (By.CSS_SELECTOR, "a[title='Successiva']"))
+      )
 
-      soup = BeautifulSoup(self.driver.page_source, 'html5lib')
+      # soup = BeautifulSoup(self.driver.page_source, 'html5lib')
       tableResults = wait.until(EC.visibility_of_element_located((By.TAG_NAME, "table")))
       table_selenium = tableResults.get_attribute("outerHTML")
 
@@ -249,6 +258,7 @@ class Scraper:
       print("Error: ", e)
       out_ex = SingleTableDTO()
       out_ex.bonds = bonds
+      out_ex.next_url_to_click = None
       return out_ex
 
     for row in rows:
@@ -280,7 +290,7 @@ class Scraper:
 
       # if (a is None):
       if (link_element is None):
-        raise ElementNotFoundException()
+        raise ElementNotFoundException("link_element not found")
       next_url = link_element
 
     except BaseException:
