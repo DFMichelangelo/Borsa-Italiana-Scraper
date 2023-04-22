@@ -205,7 +205,7 @@ class Scraper:
       while (url_rolling is not None):
         print("Start cycle", url_rolling)
         data = self.analyze_single_table(None, url_rolling)
-        bonds += data_start.bonds
+        bonds += data.bonds
         # for bond in data.bonds:
         #  bonds.append(bond)
 

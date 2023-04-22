@@ -1,3 +1,4 @@
+import datetime
 from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
@@ -25,13 +26,12 @@ class EmailSender:
     excel_path = path.join("out", "scraped.xlsx")
     # check that the output file exists
     if path.exists(excel_path):
-      subject = "An email with attachment from Python"
-      body = "This is an email with attachment sent from Python"
+      subject = f"Report Bonds {datetime.today()}"
+      body = "Data of Bonds sraped"
       message = MIMEMultipart()
       message["From"] = self.sender_email
       message["To"] = receivers
       message["Subject"] = subject
-      body = "This is an email with attachment sent from Python"
       message.attach(MIMEText(body, "plain"))
 
       part = MIMEBase('application', "octet-stream")
@@ -39,7 +39,7 @@ class EmailSender:
       # Encode file in ASCII characters to send by email
       encoders.encode_base64(part)
       part.add_header('Content-Disposition',
-                      'attachment; filename="report_bonds.xlsx"')
+                      f'attachment; filename="report_bonds_{datetime.today()}.xlsx"')
       message.attach(part)
 
       # Add attachment to message and convert message to string
