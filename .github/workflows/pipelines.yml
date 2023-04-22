@@ -3,11 +3,21 @@ on:
   schedule:
     # https://crontab.guru/#5_4_*_*_1,2,3,4,5
     - cron: "10 18 * * 1,2,3,4,5"
+  workflow_dispatch:
+    inputs:
+      should_send_email:
+        description: Should Send Email?
+        required: false
+        type: boolean
 
 jobs:
   run_code:
     runs-on: ubuntu-latest
     steps:
+      - run: |
+          echo "Should Send Email: $SHOULD_SEND_EMAIL"
+        env:
+          SHOULD_SEND_EMAIL: ${{ inputs.should_send_email }}
       - name: checkout repo content
         uses: actions/checkout@v2 # checkout the repository content
       - name: setup python
