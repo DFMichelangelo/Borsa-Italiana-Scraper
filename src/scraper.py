@@ -11,7 +11,8 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 # if it does not work, use this link with bs4:
-#https://www.borsaitaliana.it/borsa/obbligazioni/advanced-search.html?size=&lang=it&page=30 
+# https://www.borsaitaliana.it/borsa/obbligazioni/advanced-search.html?size=&lang=it&page=30
+
 
 class ElementNotFoundException(Exception):
   pass
