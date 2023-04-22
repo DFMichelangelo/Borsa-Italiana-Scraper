@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       should_send_email:
-        description: Should Send Email?
+        description: Send Email
         required: false
         type: boolean
 
@@ -30,4 +30,4 @@ jobs:
           pip install --user pipenv
           pipenv install
       - name: execute python script # run main.py
-        run: pipenv run start
+        run: pipenv run start_main
