@@ -19,8 +19,6 @@ jobs:
         env:
           SHOULD_SEND_EMAIL: ${{ inputs.should_send_email }}
       - uses: logikal-io/install-chrome@v1
-        with:
-          version: 112.0.5615.137
       - name: checkout repo content
         uses: actions/checkout@v2 # checkout the repository content
       - name: setup python
