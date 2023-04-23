@@ -87,7 +87,7 @@ class Scraper:
     response = requests.get(url, headers=headers)
     soup = BeautifulSoup(response.text, 'html5lib')
     bond = Bond()
-    bond.face_value = 100
+
     h1_title = soup.find("h1")
     if h1_title is not None:
       a_title = h1_title.find("a")
@@ -114,13 +114,16 @@ class Scraper:
     data_inizio_negoziazione = self.find_value_from_label("Data Inizio Negoziazione", soup)
     if (data_inizio_negoziazione is not None):
       bond.emission_date = datetime.datetime.strptime(data_inizio_negoziazione, "%d/%m/%y")
-
-    bond.payout_desription = self.find_value_from_label(
-        "Descrizione Payout", soup)
     bond.coupon_frequency = str_to_coupon_frequency(
         self.find_value_from_label("Periodicità cedola", soup))
     bond.coupon_frequency_raw = self.find_value_from_label("Periodicità cedola", soup)
     # Switch to complete data
+    bond.BI_gross_ytm = self.find_value_from_label_float(
+        "Rendimento effettivo a scadenza lordo", soup) / 100
+    bond.BI_net_ytm = self.find_value_from_label_float(
+        "Rendimento effettivo a scadenza netto", soup) / 100
+    bond.payout_desription = self.find_value_from_label(
+        "Descrizione Payout", soup)
     try:
       ul = soup.find("ul", {"class": "tab-nav-wrapper"})
       if ul is None or not isinstance(ul, Tag):
@@ -197,7 +200,7 @@ class Scraper:
     maturity_date = self.find_value_from_label("Scadenza", soup_complete_data)
     if (maturity_date is not None):
       bond.maturity_date = datetime.datetime.strptime(maturity_date, "%d/%m/%y")
-
+    bond.face_value = 100
     return bond
 
   def get_data_single_url(self, url) -> list[Bond]:

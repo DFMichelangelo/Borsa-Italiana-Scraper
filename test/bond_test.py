@@ -43,7 +43,7 @@ class TestBond:
     ]
     for (actual_date, expected_date) in zip(actual_dates, expected_dates):
       assert actual_date == expected_date
-  
+
   def test_coupon_dates_semestral(self):
     price_date = datetime(day=23, month=4, year=2023)
     bond = Bond()
@@ -93,6 +93,7 @@ class TestBond:
     coupon_date = datetime(day=1, month=1, year=2023) + timedelta(days=60)
     bond = Bond()
     bond.face_value = 100
+    bond.date_start_maturation = price_date - timedelta(days=365)
     bond.coupon_percentage = 0.02
     pv_actual = bond.get_coupon_present_value(0.02, price_date, coupon_date)
     pv_expected = bond.coupon_percentage * bond.face_value
@@ -112,6 +113,7 @@ class TestBond:
     bond = Bond()
     bond.liquidation_currency = "EUR"
     bond.negotiation_currency = "EUR"
+    bond.date_start_maturation = price_date - timedelta(days=365)
     bond.bid_price = 100
     bond.bond_structure = Bond.BondStructure.PLAIN_VANILLA
     bond.face_value = 100
@@ -142,6 +144,7 @@ class TestBond:
     price_date = datetime(day=1, month=1, year=2023)
     interest_rate = 0.0404
     bond = Bond()
+    bond.date_start_maturation = price_date - timedelta(days=365)
     bond.coupon_percentage = 0.02
     bond.coupon_frequency = Bond.CouponFrequency.SEMESTRAL
     bond.face_value = 100

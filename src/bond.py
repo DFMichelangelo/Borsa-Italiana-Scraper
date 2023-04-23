@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Union
 from src.utils import datetimes_difference_in_years
@@ -98,10 +98,10 @@ class Bond:
       raise Exception(f"Coupon frequency is less or equal to 0: {interval}")
     dates = list(rrule(
         dtstart=datetime(
-          day=self.date_start_maturation.day,
-          month=self.date_start_maturation.month,
-          year=start_date.year - 1),
-        until=self.maturity_date,
+            day=self.date_start_maturation.day,
+            month=self.date_start_maturation.month,
+            year=start_date.year - 1),
+        until=self.maturity_date + timedelta(days=1),
         freq=MONTHLY,
         bymonthday=self.date_start_maturation.day,
         interval=interval
@@ -141,8 +141,10 @@ class Bond:
                 borsa_italiana_gross_yield: float,
                 minimun_amount: int,  # ok
                 face_value: float,
-                issuer:str,
-                date_start_maturation:datetime
+                issuer: str,
+                date_start_maturation: datetime,
+                BI_gross_ytm: float,
+                BI_net_ytm: float
                 ) -> None:
     self.name = name
     self.isin = isin
@@ -167,8 +169,10 @@ class Bond:
     self.face_value = face_value
     self.bond_structure_raw = bond_structure_raw
     self.coupon_frequency_raw = coupon_frequency_raw
-    self.issuer=issuer
-    self.date_start_maturation=date_start_maturation
+    self.issuer = issuer
+    self.date_start_maturation = date_start_maturation
+    self.BI_gross_ytm = BI_gross_ytm
+    self.BI_net_ytm = BI_net_ytm
 
   def __init__(self, **kwargs: Any):
     if (len(kwargs) > 0):

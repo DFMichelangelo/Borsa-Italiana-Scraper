@@ -31,7 +31,9 @@ class FileService():
       os.remove(final_file_directory)
     wb = Workbook()
     wb.save(final_file_directory)
-
+    std=wb.get_sheet_by_name('Sheet')
+    if std is not None:
+      wb.remove_sheet(std)
     with pd.ExcelWriter(final_file_directory, mode="a", engine='openpyxl') as writer:
       for (sheet_name, df) in data:
         df.to_excel(writer, sheet_name=sheet_name)
