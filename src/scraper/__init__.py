@@ -199,7 +199,7 @@ class Scraper:
     bond.face_value = 100
     return bond
 
-  def get_data_single_url(self, url, paginated,click_on_search) -> list[Bond]:
+  def get_data_single_url(self, url, paginated, click_on_search) -> list[Bond]:
     print(f"************ New URL ************\n{url}\n*********************************")
     bonds = []
     page = 1
@@ -226,7 +226,7 @@ class Scraper:
             url,
             None,
             False,
-            click_on_search if page==1 else False)
+            click_on_search if page == 1 else False)
         url_rolling = data.next_url_to_click
 
       bonds += data.bonds
@@ -248,7 +248,7 @@ class Scraper:
       traceback.print_exc()
       return None
 
-  def analyze_single_table(self, url, url_to_click, paginated: bool,click_on_search:bool) -> SingleTableDTO:
+  def analyze_single_table(self, url, url_to_click, paginated: bool, click_on_search: bool) -> SingleTableDTO:
     bonds: list[Bond] = []
     try:
       # navigate to the webpage
@@ -335,13 +335,13 @@ class Scraper:
         ["https://www.borsaitaliana.it/borsa/obbligazioni/mot/obbligazioni-euro/lista.html", True],
         ["https://www.borsaitaliana.it/borsa/obbligazioni/extramot/lista.html", True],
         ["https://www.borsaitaliana.it/borsa/obbligazioni/extramot-procube/lista.html", True],
-        ["https://www.borsaitaliana.it/borsa/obbligazioni/mot/btp/lista.html", True]
+        ["https://www.borsaitaliana.it/borsa/obbligazioni/mot/btp/lista.html", True],
         ["https://www.borsaitaliana.it/borsa/obbligazioni/eurotlx/ricerca-avanzata.html", False]
     ]
     bonds: list[Bond] = []
     for url in urls:
-      click_on_search=url[1] =="https://www.borsaitaliana.it/borsa/obbligazioni/eurotlx/ricerca-avanzata.html"
-      single_bond_list = self.get_data_single_url(url[0], url[1],click_on_search)
+      click_on_search = url[1] == "https://www.borsaitaliana.it/borsa/obbligazioni/eurotlx/ricerca-avanzata.html"
+      single_bond_list = self.get_data_single_url(url[0], url[1], click_on_search)
       bonds += single_bond_list
     self.driver.close()
     return bonds
