@@ -7,11 +7,11 @@ import os
 
 def start():
   print("--- Scraping Data ---")
-  scraper = Scraper()
+  scraper = Scraper(2)
   bonds = scraper.get_data()
   print("--- Preparing Data  ---")
   fixed_bonds = [bond for bond in bonds if bond.bond_structure ==
-                 Bond.BondStructure.FIXED or bond.bond_structure == Bond.BondStructure.ZERO_COUPON]
+                 Bond.BondStructure.PLAIN_VANILLA]
   fixed_bonds_with_ytm = list(map(lambda bond: bond.assign_ytm(), fixed_bonds))
 
   # Get bonds zero coupon and fixed rate and assign a YTM.

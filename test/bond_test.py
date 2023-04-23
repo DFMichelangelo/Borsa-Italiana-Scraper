@@ -15,11 +15,15 @@ class TestBond:
     assert Bond.CouponFrequency.of("ANNUAL") == Bond.CouponFrequency.ANNUAL
     assert Bond.CouponFrequency.of("SEMESTRAL") == Bond.CouponFrequency.SEMESTRAL
     assert Bond.CouponFrequency.of("TRIMESTRAL") == Bond.CouponFrequency.TRIMESTRAL
+    assert Bond.CouponFrequency.of("MONTHLY") == Bond.CouponFrequency.MONTHLY
     assert Bond.CouponFrequency.of("UNDEFINED") == Bond.CouponFrequency.UNDEFINED
 
   def test_BondStructure_of(self):
-    assert Bond.BondStructure.of("FIXED") == Bond.BondStructure.FIXED
-    assert Bond.BondStructure.of("ZERO_COUPON") == Bond.BondStructure.ZERO_COUPON
+    assert Bond.BondStructure.of("PLAIN_VANILLA") == Bond.BondStructure.PLAIN_VANILLA
+    assert Bond.BondStructure.of("INDEX_LIKED") == Bond.BondStructure.INDEX_LIKED
+    assert Bond.BondStructure.of("CURRENCY_LINKED") == Bond.BondStructure.CURRENCY_LINKED
+    assert Bond.BondStructure.of("STRUCTURED_INTEREST_RATE") == Bond.BondStructure.STRUCTURED_INTEREST_RATE
+    assert Bond.BondStructure.of("INFLATION_LINKED") == Bond.BondStructure.INFLATION_LINKED
     assert Bond.BondStructure.of("UNDEFINED") == Bond.BondStructure.UNDEFINED
 
   def test_coupon_dates(self):
@@ -91,7 +95,7 @@ class TestBond:
     bond.liquidation_currency = "EUR"
     bond.negotiation_currency = "EUR"
     bond.bid_price = 100
-    bond.bond_structure = Bond.BondStructure.FIXED
+    bond.bond_structure = Bond.BondStructure.PLAIN_VANILLA
     bond.face_value = 100
     bond.maturity_date = datetime(
         day=1, month=1, year=2026)
@@ -107,7 +111,8 @@ class TestBond:
     bond.liquidation_currency = "EUR"
     bond.negotiation_currency = "EUR"
     bond.bid_price = 90
-    bond.bond_structure = Bond.BondStructure.ZERO_COUPON
+    bond.bond_structure = Bond.BondStructure.PLAIN_VANILLA
+    bond.coupon_frequency = Bond.CouponFrequency.UNDEFINED
     bond.face_value = 100
     bond.maturity_date = datetime(
         day=31, month=12, year=2026)

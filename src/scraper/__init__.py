@@ -1,8 +1,9 @@
 import datetime
-from .bond import Bond
-from .single_table_dto import SingleTableDTO
+
+from src.scraper.data_converters import scraped_str_to_subordination, str_to_bond_structure, str_to_coupon_frequency
+from ..bond import Bond
+from ..single_table_dto import SingleTableDTO
 from bs4 import BeautifulSoup, Tag
-from typing import Any
 import traceback
 import requests
 from selenium import webdriver
@@ -86,7 +87,7 @@ class Scraper:
     response = requests.get(url, headers=headers)
     soup = BeautifulSoup(response.text, 'html5lib')
     bond = Bond()
-
+    bond.face_value = 100
     h1_title = soup.find("h1")
     if h1_title is not None:
       a_title = h1_title.find("a")
@@ -96,22 +97,23 @@ class Scraper:
           bond.name = name
 
     bond.isin = self.find_value_from_label("Codice Isin", soup)
-    bond.subordination = self.find_value_from_label("Subordinazione", soup)
-    bond.bond_structure = Bond.BondStructure.of(
+    bond.subordination = scraped_str_to_subordination(
+        self.find_value_from_label("Subordinazione", soup))
+    bond.bond_structure = str_to_bond_structure(
         self.find_value_from_label(
             "Struttura Bond", soup))
     bond.bond_structure_raw = self.find_value_from_label(
         "Struttura Bond", soup)
     bond.bond_type = self.find_value_from_label("Tipologia", soup)
-    bond.payout_desription = self.find_value_from_label(
-        "Descrizione Payout", soup)
     bond.coupon_percentage = self.find_value_from_label_float(
-        "Tasso Prossima Cedola", soup)
+        "Tasso Prossima Cedola", soup) / 100
     data_inizio_negoziazione = self.find_value_from_label("Data Inizio Negoziazione", soup)
     if (data_inizio_negoziazione is not None):
       bond.emission_date = datetime.datetime.strptime(data_inizio_negoziazione, "%d/%m/%y")
 
-    bond.coupon_frequency = Bond.CouponFrequency.of(
+    bond.payout_desription = self.find_value_from_label(
+        "Descrizione Payout", soup)
+    bond.coupon_frequency = str_to_coupon_frequency(
         self.find_value_from_label("Periodicità cedola", soup))
     bond.coupon_frequency_raw = self.find_value_from_label("Periodicità cedola", soup)
     # Switch to complete data
@@ -319,9 +321,7 @@ class Scraper:
     for url in urls:
       if self.amount is not None and len(bonds) > self.amount:
         break
-
       single_bond_list = self.get_data_single_url(url)
-      for single in single_bond_list:
-        bonds.append(single)
+      bonds += single_bond_list
     self.driver.close()
     return bonds

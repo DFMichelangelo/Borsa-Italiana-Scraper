@@ -14,10 +14,10 @@ jobs:
   run_code:
     runs-on: ubuntu-latest
     steps:
-      - run: |
-          echo "Should Send Email: $SHOULD_SEND_EMAIL"
-        env:
-          SHOULD_SEND_EMAIL: ${{ inputs.should_send_email }}
+      # - run: |
+      #     echo "Should Send Email: $SHOULD_SEND_EMAIL"
+      #   env:
+      #     SHOULD_SEND_EMAIL: ${{ inputs.should_send_email }}
       - name: Setup Chrome
         uses: browser-actions/setup-chrome@v1.2.0
       - name: checkout repo content

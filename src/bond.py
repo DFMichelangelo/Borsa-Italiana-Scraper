@@ -13,10 +13,30 @@ class SideType(Enum):
 
 class Bond:
 
+  class Subordination(Enum):
+    COVERED = "COVERED"
+    SENIOR = "SENIOR"
+    SUBORDINATED = "SUBORDINATED"
+    TIER2 = "TIER II"
+    UNDEFINED = "UNDEFINED"
+
+    @staticmethod
+    def of(string: Union[str, None]):
+      if (string == "COVERED"):
+        return Bond.Subordination.COVERED
+      if (string == "SENIOR"):
+        return Bond.Subordination.SENIOR
+      if (string == "SUBORDINATED"):
+        return Bond.Subordination.SUBORDINATED
+      if (string == "TIER II"):
+        return Bond.Subordination.TIER2
+      return Bond.Subordination.UNDEFINED
+
   class CouponFrequency(Enum):
     ANNUAL = "ANNUAL"
     SEMESTRAL = "SEMESTRAL"
     TRIMESTRAL = "TRIMESTRAL"
+    MONTHLY = "MONTHLY"
     UNDEFINED = "UNDEFINED"
 
     def to_annual_frequency(self) -> int:
@@ -26,6 +46,8 @@ class Bond:
         return 2
       if (self == Bond.CouponFrequency.TRIMESTRAL):
         return 4
+      if (self == Bond.CouponFrequency.MONTHLY):
+        return 12
       return 0
 
     @staticmethod
@@ -36,21 +58,31 @@ class Bond:
         return Bond.CouponFrequency.SEMESTRAL
       if (string == "TRIMESTRAL"):
         return Bond.CouponFrequency.TRIMESTRAL
+      if (string == "MONTHLY"):
+        return Bond.CouponFrequency.MONTHLY
       return Bond.CouponFrequency.UNDEFINED
 
   class BondStructure(Enum):
-    FIXED = "FIXED"
-    ZERO_COUPON = "ZERO_COUPON"
+    PLAIN_VANILLA = "PLAIN_VANILLA"
+    INDEX_LIKED = "INDEX_LIKED"
+    CURRENCY_LINKED = "CURRENCY_LINKED"
+    STRUCTURED_INTEREST_RATE = "STRUCTURED_INTEREST_RATE"
+    INFLATION_LINKED = "INFLATION_LINKED"
     UNDEFINED = "UNDEFINED"
 
     @staticmethod
     def of(string: Union[str, None]):
-      if (string == "FIXED"):
-        return Bond.BondStructure.FIXED
-      if (string == "ZERO_COUPON"):
-        return Bond.BondStructure.ZERO_COUPON
-      else:
-        return Bond.BondStructure.UNDEFINED
+      if (string == "PLAIN_VANILLA"):
+        return Bond.BondStructure.PLAIN_VANILLA
+      if (string == "INDEX_LIKED"):
+        return Bond.BondStructure.INDEX_LIKED
+      if (string == "CURRENCY_LINKED"):
+        return Bond.BondStructure.CURRENCY_LINKED
+      if (string == "STRUCTURED_INTEREST_RATE"):
+        return Bond.BondStructure.STRUCTURED_INTEREST_RATE
+      if (string == "INFLATION_LINKED"):
+        return Bond.BondStructure.INFLATION_LINKED
+      return Bond.BondStructure.UNDEFINED
 
   def get_annual_coupon_percentage(self):
     annual_frequency = self.coupon_frequency.to_annual_frequency()
@@ -76,8 +108,10 @@ class Bond:
 
   def assign_ytm(self):
     now = datetime.today()
-    self.ask_ytm = self.calculate_yeld_to_maturity_non_floating_coupon(now, SideType.ASK)
-    self.bid_ytm = self.calculate_yeld_to_maturity_non_floating_coupon(now, SideType.BID)
+    if self.ask_price > 0:
+      self.ask_ytm = self.calculate_yeld_to_maturity_non_floating_coupon(now, SideType.ASK)
+    if self.bid_price > 0:
+      self.bid_ytm = self.calculate_yeld_to_maturity_non_floating_coupon(now, SideType.BID)
     return self
 
   def from_data(self,
@@ -99,7 +133,7 @@ class Bond:
                 maturity_date: datetime,
                 payout_desription: str,  # ok
                 bond_type: str,
-                subordination: str,  # ok
+                subordination: Subordination,  # ok
                 coupon_percentage: float,  # ok
                 borsa_italiana_gross_yield: float,
                 minimun_amount: int,  # ok
@@ -148,9 +182,9 @@ class Bond:
           f"negotiation currency is not EUR, but {self.negotiation_currency}")
 
     # check if it's a zero counpon, if yes, use closed form
-    if (self.bond_structure == Bond.BondStructure.ZERO_COUPON):
+    if (self.bond_structure == Bond.BondStructure.PLAIN_VANILLA and self.coupon_frequency == Bond.CouponFrequency.UNDEFINED):
       return self.get_ytm_zero_coupon_bond(side_type, price_date)
-    if (self.bond_structure == Bond.BondStructure.FIXED):
+    if (self.bond_structure == Bond.BondStructure.PLAIN_VANILLA):
       bond_price = self.bid_price if side_type == SideType.BID else self.ask_price
       def yield_to_maturity(interest_rate): return self.get_price(interest_rate, price_date) - bond_price
       return optimize.newton(yield_to_maturity, 0.0005)
