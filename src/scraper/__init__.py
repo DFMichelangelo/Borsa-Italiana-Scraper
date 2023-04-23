@@ -1,5 +1,6 @@
 import datetime
 from src.scraper.data_converters import scraped_str_to_subordination, str_to_bond_structure, str_to_coupon_frequency
+from src.utils import datetimes_difference_in_years
 from ..bond import Bond
 from ..single_table_dto import SingleTableDTO
 from bs4 import BeautifulSoup, Tag
@@ -197,6 +198,7 @@ class Scraper:
     if (maturity_date is not None):
       bond.maturity_date = datetime.datetime.strptime(maturity_date, "%d/%m/%y")
     bond.face_value = 100
+    bond.years_to_maturity = datetimes_difference_in_years(datetime.today(), bond.maturity_date)
     return bond
 
   def get_data_single_url(self, url, paginated, click_on_search) -> list[Bond]:

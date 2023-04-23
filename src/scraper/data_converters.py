@@ -14,7 +14,7 @@ def str_to_bond_structure(string: str) -> Bond.BondStructure:
     return Bond.BondStructure.INDEX_LIKED
   if string == "Plain Vanilla":
     return Bond.BondStructure.PLAIN_VANILLA
-  if string == "Structured Interest Rate":
+  if string == "Structured Interest Rate" or string == "Stuctured Interest Rate":
     return Bond.BondStructure.STRUCTURED_INTEREST_RATE
   if string == "Titoli Indicizzati All'inflazione":
     return Bond.BondStructure.INFLATION_LINKED

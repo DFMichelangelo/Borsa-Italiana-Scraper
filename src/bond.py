@@ -150,7 +150,8 @@ class Bond:
                 issuer: str,
                 date_start_maturation: datetime,
                 BI_gross_ytm: float,
-                BI_net_ytm: float
+                BI_net_ytm: float,
+                years_to_maturity: float
                 ) -> None:
     self.name = name
     self.isin = isin
@@ -179,6 +180,7 @@ class Bond:
     self.date_start_maturation = date_start_maturation
     self.BI_gross_ytm = BI_gross_ytm
     self.BI_net_ytm = BI_net_ytm
+    self.years_to_maturity = years_to_maturity
 
   def __init__(self, **kwargs: Any):
     if (len(kwargs) > 0):
