@@ -7,7 +7,7 @@ import os
 
 def start():
   print("--- Scraping Data ---")
-  scraper = Scraper(2)
+  scraper = Scraper()
   bonds = scraper.get_data()
   print("--- Preparing Data  ---")
   fixed_bonds = [bond for bond in bonds if bond.bond_structure ==
