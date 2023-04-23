@@ -27,22 +27,40 @@ class TestBond:
     assert Bond.BondStructure.of("UNDEFINED") == Bond.BondStructure.UNDEFINED
 
   def test_coupon_dates(self):
-    price_date = datetime(day=15, month=4, year=2023)
+    price_date = datetime(day=23, month=4, year=2023)
     bond = Bond()
-    bond.coupon_frequency = Bond.CouponFrequency.SEMESTRAL
+    bond.date_start_maturation = datetime(day=15, month=7, year=2020)
+    bond.coupon_frequency = Bond.CouponFrequency.ANNUAL
     bond.maturity_date = datetime(
-        day=31, month=12, year=price_date.year + 3)
+        day=15, month=7, year=price_date.year + 3)
     actual_dates = bond.coupon_dates(price_date)
 
     expected_dates = [
-        datetime(2023, 6, 30),
-        datetime(2023, 12, 31),
-        datetime(2024, 6, 30),
-        datetime(2024, 12, 31),
-        datetime(2025, 6, 30),
-        datetime(2025, 12, 31),
-        datetime(2026, 6, 30),
-        datetime(2026, 12, 31)
+        datetime(2023, 7, 15),
+        datetime(2024, 7, 15),
+        datetime(2025, 7, 15),
+        datetime(2026, 7, 15),
+    ]
+    for (actual_date, expected_date) in zip(actual_dates, expected_dates):
+      assert actual_date == expected_date
+  
+  def test_coupon_dates_semestral(self):
+    price_date = datetime(day=23, month=4, year=2023)
+    bond = Bond()
+    bond.date_start_maturation = datetime(day=15, month=7, year=2020)
+    bond.coupon_frequency = Bond.CouponFrequency.SEMESTRAL
+    bond.maturity_date = datetime(
+        day=15, month=7, year=price_date.year + 3)
+    actual_dates = bond.coupon_dates(price_date)
+
+    expected_dates = [
+        datetime(2023, 7, 15),
+        datetime(2024, 1, 15),
+        datetime(2024, 7, 15),
+        datetime(2025, 1, 15),
+        datetime(2025, 7, 15),
+        datetime(2026, 1, 15),
+        datetime(2026, 7, 15),
     ]
     for (actual_date, expected_date) in zip(actual_dates, expected_dates):
       assert actual_date == expected_date

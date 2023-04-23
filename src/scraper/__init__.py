@@ -97,6 +97,10 @@ class Scraper:
           bond.name = name
 
     bond.isin = self.find_value_from_label("Codice Isin", soup)
+    bond.issuer = self.find_value_from_label("Emittente", soup)
+    data_godimento = self.find_value_from_label("Data Godimento", soup)
+    if data_godimento is not None:
+      bond.date_start_maturation = datetime.datetime.strptime(data_godimento, "%d/%m/%y")
     bond.subordination = scraped_str_to_subordination(
         self.find_value_from_label("Subordinazione", soup))
     bond.bond_structure = str_to_bond_structure(

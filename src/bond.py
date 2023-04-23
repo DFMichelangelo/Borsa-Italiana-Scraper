@@ -97,10 +97,13 @@ class Bond:
     if interval <= 0:
       raise Exception(f"Coupon frequency is less or equal to 0: {interval}")
     dates = list(rrule(
-        dtstart=datetime(day=31, month=12, year=start_date.year - 1),
+        dtstart=datetime(
+          day=self.date_start_maturation.day,
+          month=self.date_start_maturation.month,
+          year=start_date.year - 1),
         until=self.maturity_date,
         freq=MONTHLY,
-        bymonthday=-1,
+        bymonthday=self.date_start_maturation.day,
         interval=interval
     ))
 
@@ -137,7 +140,9 @@ class Bond:
                 coupon_percentage: float,  # ok
                 borsa_italiana_gross_yield: float,
                 minimun_amount: int,  # ok
-                face_value: float
+                face_value: float,
+                issuer:str,
+                date_start_maturation:datetime
                 ) -> None:
     self.name = name
     self.isin = isin
@@ -162,6 +167,8 @@ class Bond:
     self.face_value = face_value
     self.bond_structure_raw = bond_structure_raw
     self.coupon_frequency_raw = coupon_frequency_raw
+    self.issuer=issuer
+    self.date_start_maturation=date_start_maturation
 
   def __init__(self, **kwargs: Any):
     if (len(kwargs) > 0):
