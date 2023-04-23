@@ -27,7 +27,7 @@ class EmailSender:
     # check that the output file exists
     if path.exists(excel_path):
       subject = f"Report Bonds {datetime.today()}"
-      body = "Data of Bonds sraped"
+      body = "Data of Bonds scraped"
       message = MIMEMultipart()
       message["From"] = self.sender_email
       message["To"] = receivers

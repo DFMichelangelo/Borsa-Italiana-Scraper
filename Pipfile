@@ -39,6 +39,6 @@ _code_coverage = "coverage run --omit='test/**' -m pytest"
 _code_coverage_report = "coverage html --omit='test/**' -d coverage_html"
 _pre_command= "bash -c 'pipenv run _lint && pipenv run _mypy'"
 
-test="bash -c 'pipenv run _pre_command && pipenv run _code_coverage; pipenv run _code_coverage_report'"
+test="bash -c 'pipenv run _pre_command && pipenv run _code_coverage && pipenv run _code_coverage_report'"
 start="bash -c 'pipenv run _pre_command && pipenv run start_main'"
 start_main= "python main.py"

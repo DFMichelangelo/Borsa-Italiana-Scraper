@@ -1,5 +1,4 @@
 import datetime
-
 from src.scraper.data_converters import scraped_str_to_subordination, str_to_bond_structure, str_to_coupon_frequency
 from ..bond import Bond
 from ..single_table_dto import SingleTableDTO
@@ -11,8 +10,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
-# if it does not work, use this link with bs4:
-# https://www.borsaitaliana.it/borsa/obbligazioni/advanced-search.html?size=&lang=it&page=30
 
 
 class ElementNotFoundException(Exception):
@@ -21,8 +18,9 @@ class ElementNotFoundException(Exception):
 
 class Scraper:
 
-  def __init__(self, amount: int | None = None):
-    self.amount = amount
+  def __init__(self, amount_to_scrape: int | None = None):
+    self.amount_to_scrape = amount_to_scrape
+    self.amount = 0
     chrome_options = Options()
     chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
     chrome_options.add_argument("--headless")
@@ -32,8 +30,6 @@ class Scraper:
     chrome_options.add_argument('disable-infobars')
     chrome_options.add_argument("--disable-extensions")
     driver = webdriver.Chrome(chrome_options=chrome_options, executable_path='/usr/bin/chromedriver')
-    # chrome_options.add_argument("--headless")
-    # driver = webdriver.Chrome(options=chrome_options)
     self.driver = driver
 
   def find_n_value_from_label(
@@ -159,7 +155,7 @@ class Scraper:
               ",",
               "."))
     except (ElementNotFoundException, ValueError):
-      bond.ask_price = 0
+      pass
     try:
       bond.ask_volume = float(
           self.find_n_value_from_label(
@@ -183,7 +179,7 @@ class Scraper:
               ",",
               "."))
     except (ElementNotFoundException, ValueError):
-      bond.bid_price = 0
+      pass
     try:
       bond.bid_volume = float(
           self.find_n_value_from_label(
@@ -203,38 +199,56 @@ class Scraper:
     bond.face_value = 100
     return bond
 
-  def get_data_single_url(self, url) -> list[Bond]:
-    print("********************* New URL *********************")
-    print(url)
-    print("***************************************************")
+  def get_data_single_url(self, url, paginated,click_on_search) -> list[Bond]:
+    print(f"************ New URL ************\n{url}\n*********************************")
     bonds = []
-    data_start = self.analyze_single_table(url, None)
-    bonds += data_start.bonds
-    # for bond in data_start.bonds:
-    #  bonds.append(bond)
+    page = 1
+    if paginated:
+      url_rolling = url + f"?&page={page}"
+    else:
+      url_rolling = url
+    while (url_rolling is not None):
+      print(f"Start page {page}, {url_rolling}")
 
-    if self.amount is not None and len(bonds) > self.amount - 1:
-      return bonds
-
-    if (data_start.next_url_to_click):
-      url_rolling = data_start.next_url_to_click
-      while (url_rolling is not None):
-        print("Start cycle", url_rolling)
-        data = self.analyze_single_table(None, url_rolling)
-        bonds += data.bonds
-        # for bond in data.bonds:
-        #  bonds.append(bond)
-
-        if self.amount is not None and len(bonds) > self.amount - 1:
-          return bonds
-
-        print("Next url is", data.next_url_to_click)
+      if paginated is True:
+        data = self.analyze_single_table(url_rolling, None, True, False)
+        page += 1
+        if data.bonds == []:
+          url_rolling = None
+        else:
+          url_rolling = url + f"?&page={page}"
+      else:
+        data = self.analyze_single_table(
+            None,
+            url_rolling,
+            False,
+            click_on_search) if page > 1 else self.analyze_single_table(
+            url,
+            None,
+            False,
+            click_on_search if page==1 else False)
         url_rolling = data.next_url_to_click
 
-    print("End")
+      bonds += data.bonds
+
     return bonds
 
-  def analyze_single_table(self, url, url_to_click=None) -> SingleTableDTO:
+  def analyze_row(self, row) -> Bond | None:
+    try:
+      self.amount += 1
+      single_row = row.find_all("td")
+      if single_row is None or len(single_row) == 0:
+        return None
+      href = single_row[0].find("a", href=True)['href']
+      bond = self.analyze_single_bond(
+          "https://www.borsaitaliana.it" + href)
+      return bond
+    except Exception as e:
+      print("Error: ", e)
+      traceback.print_exc()
+      return None
+
+  def analyze_single_table(self, url, url_to_click, paginated: bool,click_on_search:bool) -> SingleTableDTO:
     bonds: list[Bond] = []
     try:
       # navigate to the webpage
@@ -242,22 +256,37 @@ class Scraper:
         self.driver.get(url)
       else:
         url_to_click.click()
+      wait = WebDriverWait(self.driver, 3)
 
-      # wait for the "Tipo" dropdown to load and select "Obbligazioni"
-      wait = WebDriverWait(self.driver, 5)
-      if url is not None:
-        button = wait.until(
-            EC.element_to_be_clickable(
-                (By.XPATH, "//span[contains(text(),'Accetta tutti i cookie di profilazione')]")))
-        button.click()
-      wait.until(EC.visibility_of_element_located((By.ID, "tableResults")))
-      ul_element = wait.until(EC.presence_of_element_located((By.CLASS_NAME, "m-pagination__nav")))
-      link_element = wait.until(
-          EC.presence_of_element_located(
-              (By.CSS_SELECTOR, "a[title='Successiva']"))
-      )
+      if paginated is False:
+        if url is not None:
+          try:
+            button = wait.until(
+                EC.element_to_be_clickable(
+                    (By.XPATH, "//span[contains(text(),'Accetta tutti i cookie di profilazione')]")))
+            button.click()
+            if click_on_search:
+              search_button = wait.until(
+                  EC.element_to_be_clickable((By.CSS_SELECTOR, "a[title='Cerca']")))
+              search_button.click()
+          except BaseException:
+            pass
+          try:
+            link_element = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "a[title='Successiva']")))
+          except BaseException:
+            print("link_element not found")
+            link_element = None
+          ul_element = wait.until(EC.presence_of_element_located((By.CLASS_NAME, "m-pagination__nav")))
+        try:
+          wait.until(EC.visibility_of_element_located((By.ID, "tableResults")))
+        except BaseException:
+          pass
 
-      # soup = BeautifulSoup(self.driver.page_source, 'html5lib')
+      try:
+        wait.until(EC.visibility_of_element_located((By.CLASS_NAME, "m-table -firstlevel")))
+      except BaseException:
+        pass
+
       tableResults = wait.until(EC.visibility_of_element_located((By.TAG_NAME, "table")))
       table_selenium = tableResults.get_attribute("outerHTML")
 
@@ -272,45 +301,28 @@ class Scraper:
       rows = tbody.find_all("tr")
     except Exception as e:
       print("Error: ", e)
+      traceback.print_exc()
       out_ex = SingleTableDTO()
       out_ex.bonds = bonds
       out_ex.next_url_to_click = None
       return out_ex
 
     for row in rows:
-      try:
-        single_row = row.find_all("td")
-        if single_row is None or len(single_row) == 0:
-          continue
-        href = single_row[0].find("a", href=True)['href']
-        bond = self.analyze_single_bond(
-            "https://www.borsaitaliana.it" + href)
+      # TODO REMOVE
+      bond = self.analyze_row(row)
+      if (bond is not None):
         bonds.append(bond)
+      if self.amount_to_scrape is not None and len(bonds) >= self.amount_to_scrape:
+        break
 
-        if self.amount is not None and len(bonds) > self.amount - 1:
-          out = SingleTableDTO()
-          out.bonds = bonds
-          return out
-
-      except Exception as e:
-        print("Error: ", e)
-        traceback.print_exc()
-
-    next_url = None
-    try:
-      # TODO Remove Any
-     # ul: Any = soup.find("ul", {"class": "m-pagination__nav"})
-      # if (ul is None):
-      #  raise ElementNotFoundException()
-      # a = ul.find("a", title="Successiva", href=True)
-
-      # if (a is None):
-      if (link_element is None):
-        raise ElementNotFoundException("link_element not found")
-      next_url = link_element
-
-    except BaseException:
+    if paginated:
       next_url = None
+      try:
+        if (link_element is None):
+          raise ElementNotFoundException("link_element not found")
+        next_url = link_element
+      except BaseException:
+        next_url = None
     out = SingleTableDTO()
     out.next_url_to_click = next_url if next_url is not None else None
     out.bonds = bonds
@@ -318,17 +330,18 @@ class Scraper:
 
   def get_data(self) -> list[Bond]:
     urls = [
-        "https://www.borsaitaliana.it/borsa/obbligazioni/ricerca-avanzata.html",
-        # "https://www.borsaitaliana.it/borsa/obbligazioni/mot/obbligazioni-euro/lista.html",
-        # "https://www.borsaitaliana.it/borsa/obbligazioni/extramot/lista.html",
-        # "https://www.borsaitaliana.it/borsa/obbligazioni/extramot-procube/lista.html",
-        # "https://www.borsaitaliana.it/borsa/obbligazioni/mot/btp/lista.html"
+        # "https://www.borsaitaliana.it/borsa/obbligazioni/ricerca-avanzata.html", #pagination https://www.borsaitaliana.it/borsa/obbligazioni/advanced-search.html?size=&lang=it&page=30
+        ["https://www.borsaitaliana.it/borsa/obbligazioni/advanced-search.html?size=&lang=it", True],  # pagination https://www.borsaitaliana.it/borsa/obbligazioni/advanced-search.html?size=&lang=it&page=30
+        ["https://www.borsaitaliana.it/borsa/obbligazioni/mot/obbligazioni-euro/lista.html", True],
+        ["https://www.borsaitaliana.it/borsa/obbligazioni/extramot/lista.html", True],
+        ["https://www.borsaitaliana.it/borsa/obbligazioni/extramot-procube/lista.html", True],
+        ["https://www.borsaitaliana.it/borsa/obbligazioni/mot/btp/lista.html", True]
+        ["https://www.borsaitaliana.it/borsa/obbligazioni/eurotlx/ricerca-avanzata.html", False]
     ]
     bonds: list[Bond] = []
     for url in urls:
-      if self.amount is not None and len(bonds) > self.amount:
-        break
-      single_bond_list = self.get_data_single_url(url)
+      click_on_search=url[1] =="https://www.borsaitaliana.it/borsa/obbligazioni/eurotlx/ricerca-avanzata.html"
+      single_bond_list = self.get_data_single_url(url[0], url[1],click_on_search)
       bonds += single_bond_list
     self.driver.close()
     return bonds
