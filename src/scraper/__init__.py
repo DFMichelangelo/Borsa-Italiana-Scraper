@@ -96,7 +96,7 @@ class Scraper:
     bond.isin = self.find_value_from_label("Codice Isin", soup)
     bond.issuer = self.find_value_from_label("Emittente", soup)
     data_godimento = self.find_value_from_label("Data Godimento", soup)
-    if data_godimento is not None:
+    if data_godimento is not None and data_godimento != "":
       bond.date_start_maturation = datetime.datetime.strptime(data_godimento, "%d/%m/%y")
     bond.subordination = scraped_str_to_subordination(
         self.find_value_from_label("Subordinazione", soup))
@@ -342,7 +342,7 @@ class Scraper:
     ]
     bonds: list[Bond] = []
     for url in urls:
-      click_on_search = url[1] == "https://www.borsaitaliana.it/borsa/obbligazioni/eurotlx/ricerca-avanzata.html"
+      click_on_search = url[0] == "https://www.borsaitaliana.it/borsa/obbligazioni/eurotlx/ricerca-avanzata.html"
       single_bond_list = self.get_data_single_url(url[0], url[1], click_on_search)
       bonds += single_bond_list
     self.driver.close()
