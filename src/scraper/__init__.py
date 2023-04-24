@@ -66,8 +66,6 @@ class Scraper:
       return 0
 
   def find_value_from_label_int(self, label: str, soup: BeautifulSoup) -> int:
-    if label is None:
-      return None
     try:
       return int(
           self.find_value_from_label(
@@ -78,6 +76,8 @@ class Scraper:
               ",",
               "."))
     except ElementNotFoundException:
+      return 0
+    except ValueError:
       return 0
 
   def analyze_single_bond(self, url: str) -> Bond:
@@ -256,7 +256,7 @@ class Scraper:
         "Rendimento effettivo a scadenza lordo", soup) / 100
     bond.BI_net_ytm = self.find_value_from_label_float(
         "Rendimento effettivo a scadenza netto", soup) / 100
-    bond.isin = self.find_value_from_label("Codice Isin", soup)
+    bond.isin = self.find_value_from_label("ISIN", soup)
     # Switch to complete data
     try:
       complete_data = f"/borsa/obbligazioni/eurotlx/dati-completi.html?isin={bond.isin}&lang=it"
@@ -286,8 +286,8 @@ class Scraper:
     bond.field_type = self.find_value_from_label(
         "Tipologia", soup_complete_data)
     maturity_date = self.find_value_from_label("Data di scadenza", soup_complete_data)
-    if (maturity_date is not None):
-      bond.maturity_date = datetime.datetime.strptime(maturity_date, "%d/%m/%y")
+    if (maturity_date is not None and maturity_date != ""):
+      bond.maturity_date = datetime.datetime.strptime(maturity_date, "%d/%m/%Y")
     bond.face_value = 100
     bond.years_to_maturity = datetimes_difference_in_years(datetime.datetime.today(), bond.maturity_date)
     return bond
@@ -403,11 +403,11 @@ class Scraper:
     urls = [
         # "https://www.borsaitaliana.it/borsa/obbligazioni/ricerca-avanzata.html", #pagination https://www.borsaitaliana.it/borsa/obbligazioni/advanced-search.html?size=&lang=it&page=30
         ["https://www.borsaitaliana.it/borsa/obbligazioni/eurotlx/ricerca-avanzata.html", False],
-        ["https://www.borsaitaliana.it/borsa/obbligazioni/advanced-search.html?size=&lang=it", True],  # pagination https://www.borsaitaliana.it/borsa/obbligazioni/advanced-search.html?size=&lang=it&page=30
-        ["https://www.borsaitaliana.it/borsa/obbligazioni/mot/obbligazioni-euro/lista.html", True],
-        ["https://www.borsaitaliana.it/borsa/obbligazioni/extramot/lista.html", True],
-        ["https://www.borsaitaliana.it/borsa/obbligazioni/extramot-procube/lista.html", True],
-        ["https://www.borsaitaliana.it/borsa/obbligazioni/mot/btp/lista.html", True]
+        # ["https://www.borsaitaliana.it/borsa/obbligazioni/advanced-search.html?size=&lang=it", True],  # pagination https://www.borsaitaliana.it/borsa/obbligazioni/advanced-search.html?size=&lang=it&page=30
+        # ["https://www.borsaitaliana.it/borsa/obbligazioni/mot/obbligazioni-euro/lista.html", True],
+        # ["https://www.borsaitaliana.it/borsa/obbligazioni/extramot/lista.html", True],
+        # ["https://www.borsaitaliana.it/borsa/obbligazioni/extramot-procube/lista.html", True],
+        # ["https://www.borsaitaliana.it/borsa/obbligazioni/mot/btp/lista.html", True]
     ]
     bonds: list[Bond] = []
     for url in urls:

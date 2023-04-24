@@ -207,7 +207,7 @@ class Bond:
     # check if it's a zero counpon, if yes, use closed form
     if (self.bond_structure == Bond.BondStructure.PLAIN_VANILLA and self.coupon_frequency == Bond.CouponFrequency.UNDEFINED):
       return self.get_ytm_zero_coupon_bond(side_type, price_date)
-    if (self.bond_structure == Bond.BondStructure.PLAIN_VANILLA):
+    if (self.bond_structure == Bond.BondStructure.PLAIN_VANILLA and self.bond_structure == Bond.BondStructure.UNDEFINED):
       bond_price = self.bid_price if side_type == SideType.BID else self.ask_price
       def yield_to_maturity(interest_rate): return self.get_price(interest_rate, price_date) - bond_price
       return optimize.newton(yield_to_maturity, 0.0005)
