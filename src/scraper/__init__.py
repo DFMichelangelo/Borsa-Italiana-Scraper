@@ -403,11 +403,11 @@ class Scraper:
     urls = [
         # "https://www.borsaitaliana.it/borsa/obbligazioni/ricerca-avanzata.html", #pagination https://www.borsaitaliana.it/borsa/obbligazioni/advanced-search.html?size=&lang=it&page=30
         ["https://www.borsaitaliana.it/borsa/obbligazioni/eurotlx/ricerca-avanzata.html", False],
-        # ["https://www.borsaitaliana.it/borsa/obbligazioni/advanced-search.html?size=&lang=it", True],  # pagination https://www.borsaitaliana.it/borsa/obbligazioni/advanced-search.html?size=&lang=it&page=30
-        # ["https://www.borsaitaliana.it/borsa/obbligazioni/mot/obbligazioni-euro/lista.html", True],
-        # ["https://www.borsaitaliana.it/borsa/obbligazioni/extramot/lista.html", True],
-        # ["https://www.borsaitaliana.it/borsa/obbligazioni/extramot-procube/lista.html", True],
-        # ["https://www.borsaitaliana.it/borsa/obbligazioni/mot/btp/lista.html", True]
+        ["https://www.borsaitaliana.it/borsa/obbligazioni/advanced-search.html?size=&lang=it", True],  # pagination https://www.borsaitaliana.it/borsa/obbligazioni/advanced-search.html?size=&lang=it&page=30
+        ["https://www.borsaitaliana.it/borsa/obbligazioni/mot/obbligazioni-euro/lista.html", True],
+        ["https://www.borsaitaliana.it/borsa/obbligazioni/extramot/lista.html", True],
+        ["https://www.borsaitaliana.it/borsa/obbligazioni/extramot-procube/lista.html", True],
+        ["https://www.borsaitaliana.it/borsa/obbligazioni/mot/btp/lista.html", True]
     ]
     bonds: list[Bond] = []
     for url in urls:
