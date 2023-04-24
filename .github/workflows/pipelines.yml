@@ -33,3 +33,10 @@ jobs:
           pipenv install
       - name: execute python script # run main.py
         run: pipenv run start_main
+        env:
+          SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
+          PORT: ${{ secrets.PORT }}
+          EMAIL: ${{ secrets.EMAIL }}
+          PASSWORD: ${{ secrets.PASSWORD }}
+          SHOULD_SEND_EMAIL: ${{ secrets.SHOULD_SEND_EMAIL }}
+          RECEIVERS: ${{ secrets.RECEIVERS }}
