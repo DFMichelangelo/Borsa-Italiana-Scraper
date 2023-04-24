@@ -6,12 +6,6 @@ import os
 
 
 def start():
-  print(os.environ.get("SMTP_SERVER"))
-  print(int(os.environ.get("PORT")))
-  print(os.environ.get("EMAIL"))
-  print(os.environ.get("SHOULD_SEND_EMAIL"))
-
-def start2():
   print("--- Scraping Data ---")
   scraper = Scraper()
   bonds = scraper.get_data()
