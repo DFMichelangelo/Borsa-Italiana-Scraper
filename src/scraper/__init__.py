@@ -66,6 +66,8 @@ class Scraper:
       return 0
 
   def find_value_from_label_int(self, label: str, soup: BeautifulSoup) -> int:
+    if label is None:
+      return None
     try:
       return int(
           self.find_value_from_label(
@@ -384,8 +386,8 @@ class Scraper:
       if self.amount_to_scrape is not None and len(bonds) >= self.amount_to_scrape:
         break
 
+    next_url = None
     if paginated:
-      next_url = None
       try:
         if (link_element is None):
           raise ElementNotFoundException("link_element not found")
