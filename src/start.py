@@ -6,6 +6,12 @@ import os
 
 
 def start():
+  print(os.environ.get("SMTP_SERVER"))
+  print(int(os.environ.get("PORT")))
+  print(os.environ.get("EMAIL"))
+  print(os.environ.get("SHOULD_SEND_EMAIL"))
+
+def start2():
   print("--- Scraping Data ---")
   scraper = Scraper()
   bonds = scraper.get_data()
@@ -26,8 +32,8 @@ def start():
   FileService.save_excel(data_to_excel)
 
   should_send_email = os.environ.get("SHOULD_SEND_EMAIL")
-  print(should_send_email)
-  if should_send_email is not None or should_send_email.lower() != "false":
+  print(f"should_send_email: {should_send_email}")
+  if should_send_email is not None or should_send_email.lower() =="true":
     print("--- Sending email  ---")
     email_sender = EmailSender(
         smtp_server=os.environ.get("SMTP_SERVER"),

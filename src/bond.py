@@ -111,16 +111,17 @@ class Bond:
 
   def assign_ytm(self):
     now = datetime.today()
-    if hasattr(self, "ask_price"):
-      try:
-        self.ask_ytm = self.calculate_yeld_to_maturity_non_floating_coupon(now, SideType.ASK)
-      except BaseException:
-        pass
     if hasattr(self, "bid_price"):
       try:
         self.bid_ytm = self.calculate_yeld_to_maturity_non_floating_coupon(now, SideType.BID)
       except BaseException:
         pass
+    if hasattr(self, "ask_price"):
+      try:
+        self.ask_ytm = self.calculate_yeld_to_maturity_non_floating_coupon(now, SideType.ASK)
+      except BaseException:
+        pass
+
     return self
 
   def from_data(self,
