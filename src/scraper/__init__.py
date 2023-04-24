@@ -387,7 +387,7 @@ class Scraper:
         break
 
     next_url = None
-    if paginated:
+    if not (paginated):
       try:
         if (link_element is None):
           raise ElementNotFoundException("link_element not found")
