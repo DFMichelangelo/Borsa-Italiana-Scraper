@@ -96,14 +96,17 @@ class Bond:
     interval = int(12 / self.coupon_frequency.to_annual_frequency())
     if interval <= 0:
       raise Exception(f"Coupon frequency is less or equal to 0: {interval}")
+
+    date_for_dtstart: datetime = self.date_start_maturation if hasattr(
+        self, "date_start_maturation") else self.maturity_date
     dates = list(rrule(
         dtstart=datetime(
-            day=self.date_start_maturation.day,
-            month=self.date_start_maturation.month,
+            day=date_for_dtstart.day,
+            month=date_for_dtstart.month,
             year=start_date.year - 1),
         until=self.maturity_date + timedelta(days=1),
         freq=MONTHLY,
-        bymonthday=self.date_start_maturation.day,
+        bymonthday=date_for_dtstart.day,
         interval=interval
     ))
 

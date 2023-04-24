@@ -24,7 +24,7 @@ class Scraper:
     self.amount = 0
     chrome_options = Options()
     chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
-    chrome_options.add_argument("--headless")
+    # chrome_options.add_argument("--headless")
     chrome_options.add_argument('--no-sandbox')
     chrome_options.add_argument('--disable-gpu')
     chrome_options.add_argument('--disable-dev-shm-usage')
@@ -114,19 +114,18 @@ class Scraper:
     bond.coupon_frequency = str_to_coupon_frequency(
         self.find_value_from_label("Periodicità cedola", soup))
     bond.coupon_frequency_raw = self.find_value_from_label("Periodicità cedola", soup)
-    # Switch to complete data
     bond.BI_gross_ytm = self.find_value_from_label_float(
         "Rendimento effettivo a scadenza lordo", soup) / 100
     bond.BI_net_ytm = self.find_value_from_label_float(
         "Rendimento effettivo a scadenza netto", soup) / 100
     bond.payout_desription = self.find_value_from_label(
         "Descrizione Payout", soup)
+    # Switch to complete data
     try:
       ul = soup.find("ul", {"class": "tab-nav-wrapper"})
       if ul is None or not isinstance(ul, Tag):
         raise ElementNotFoundException()
       complete_data = ul.findAll("li")[1].find("a", href=True)['href']
-      headers = {'Accept-Encoding': 'identity'}
       request_complete_data = requests.get(
           "https://www.borsaitaliana.it" + complete_data, headers=headers)
       soup_complete_data = BeautifulSoup(
@@ -201,7 +200,7 @@ class Scraper:
     bond.years_to_maturity = datetimes_difference_in_years(datetime.datetime.today(), bond.maturity_date)
     return bond
 
-  def get_data_single_url(self, url, paginated, click_on_search) -> list[Bond]:
+  def get_data_single_url(self, url, paginated, click_on_search, is_eurotlx) -> list[Bond]:
     print(f"************ New URL ************\n{url}\n*********************************")
     bonds = []
     page = 1
@@ -213,7 +212,7 @@ class Scraper:
       print(f"Start page {page}, {url_rolling}")
 
       if paginated is True:
-        data = self.analyze_single_table(url_rolling, None, True, False)
+        data = self.analyze_single_table(url_rolling, None, True, False, False)
         page += 1
         if data.bonds == []:
           url_rolling = None
@@ -224,33 +223,101 @@ class Scraper:
             None,
             url_rolling,
             False,
-            click_on_search) if page > 1 else self.analyze_single_table(
+            click_on_search,
+            is_eurotlx) if page > 1 else self.analyze_single_table(
             url,
             None,
             False,
-            click_on_search if page == 1 else False)
+            click_on_search if page == 1 else False,
+            is_eurotlx)
         url_rolling = data.next_url_to_click
 
       bonds += data.bonds
 
     return bonds
 
-  def analyze_row(self, row) -> Bond | None:
+  def analyze_single_bond_eurotlx(self, url: str) -> Bond:
+    print("Start analysing (eurotlx) " + url)
+    headers = {'Accept-Encoding': 'identity'}
+    response = requests.get(url, headers=headers)
+    soup = BeautifulSoup(response.text, 'html5lib')
+    bond = Bond()
+    h1_title = soup.find("h1")
+    if h1_title is not None:
+      a_title = h1_title.find("a")
+      if a_title is not None and not isinstance(a_title, int):
+        name = str(a_title.text)
+        if name is not None:
+          bond.name = name
+
+    bond.BI_gross_ytm = self.find_value_from_label_float(
+        "Rendimento effettivo a scadenza lordo", soup) / 100
+    bond.BI_net_ytm = self.find_value_from_label_float(
+        "Rendimento effettivo a scadenza netto", soup) / 100
+    bond.isin = self.find_value_from_label("Codice Isin", soup)
+    # Switch to complete data
+    try:
+      complete_data = f"/borsa/obbligazioni/eurotlx/dati-completi.html?isin={bond.isin}&lang=it"
+      headers = {'Accept-Encoding': 'identity'}
+      request_complete_data = requests.get(
+          "https://www.borsaitaliana.it" + complete_data, headers=headers)
+      soup_complete_data = BeautifulSoup(
+          request_complete_data.text, 'html5lib')
+    except ElementNotFoundException as e:
+      print("Error analyzing " + url, e)
+      return bond
+    bond.issuer = self.find_value_from_label("Emittente", soup_complete_data)
+    bond.ask_price = self.find_value_from_label_float("Prezzo di chiusura", soup_complete_data)
+    bond.bid_price = bond.ask_price
+    bond.bond_type = self.find_value_from_label("Tipologia", soup)
+    bond.coupon_percentage = self.find_value_from_label_float(
+        "Tasso cedola in corso", soup) / 100
+    bond.coupon_frequency = str_to_coupon_frequency(
+        self.find_value_from_label("Frequenza di pagamento", soup))
+    bond.coupon_frequency_raw = self.find_value_from_label("Frequenza di pagamento", soup)
+    bond.negotiation_currency = self.find_value_from_label(
+        "Valuta di negoziazione", soup_complete_data)
+    bond.total_volume = self.find_value_from_label_float(
+        "Volume giornaliero", soup_complete_data)
+    bond.minimun_amount = self.find_value_from_label_int(
+        "Lotto minimo", soup_complete_data)
+    bond.field_type = self.find_value_from_label(
+        "Tipologia", soup_complete_data)
+    maturity_date = self.find_value_from_label("Data di scadenza", soup_complete_data)
+    if (maturity_date is not None):
+      bond.maturity_date = datetime.datetime.strptime(maturity_date, "%d/%m/%y")
+    bond.face_value = 100
+    bond.years_to_maturity = datetimes_difference_in_years(datetime.datetime.today(), bond.maturity_date)
+    return bond
+
+  def analyze_row(self, row, is_eurotlx: bool) -> Bond | None:
     try:
       self.amount += 1
       single_row = row.find_all("td")
       if single_row is None or len(single_row) == 0:
         return None
+
       href = single_row[0].find("a", href=True)['href']
-      bond = self.analyze_single_bond(
-          "https://www.borsaitaliana.it" + href)
+      if is_eurotlx:
+        # isin=single_row[0].find("a", href=True).text
+        bond = self.analyze_single_bond_eurotlx(
+            "https://www.borsaitaliana.it" + href)
+      else:
+        bond = self.analyze_single_bond(
+            "https://www.borsaitaliana.it" + href)
       return bond
     except Exception as e:
       print("Error: ", e)
       traceback.print_exc()
       return None
 
-  def analyze_single_table(self, url, url_to_click, paginated: bool, click_on_search: bool) -> SingleTableDTO:
+  def analyze_single_table(
+          self,
+          url,
+          url_to_click,
+          paginated: bool,
+          click_on_search: bool,
+          is_eurotlx: bool) -> SingleTableDTO:
     bonds: list[Bond] = []
     try:
       # navigate to the webpage
@@ -311,7 +378,7 @@ class Scraper:
 
     for row in rows:
       # TODO REMOVE
-      bond = self.analyze_row(row)
+      bond = self.analyze_row(row, is_eurotlx)
       if (bond is not None):
         bonds.append(bond)
       if self.amount_to_scrape is not None and len(bonds) >= self.amount_to_scrape:
@@ -343,7 +410,7 @@ class Scraper:
     bonds: list[Bond] = []
     for url in urls:
       click_on_search = url[0] == "https://www.borsaitaliana.it/borsa/obbligazioni/eurotlx/ricerca-avanzata.html"
-      single_bond_list = self.get_data_single_url(url[0], url[1], click_on_search)
+      single_bond_list = self.get_data_single_url(url[0], url[1], click_on_search, click_on_search)
       bonds += single_bond_list
     self.driver.close()
     return bonds

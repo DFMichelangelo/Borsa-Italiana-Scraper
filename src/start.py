@@ -8,7 +8,7 @@ import os
 def start():
   print("--- Scraping Data ---")
   scraper = Scraper()
-  bonds = [] #scraper.get_data()
+  bonds = scraper.get_data()
   print("--- Preparing Data  ---")
   fixed_bonds = [bond for bond in bonds if hasattr(bond, "bond_structure") and bond.bond_structure ==
                  Bond.BondStructure.PLAIN_VANILLA]
