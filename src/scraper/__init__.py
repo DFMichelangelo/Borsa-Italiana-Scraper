@@ -260,6 +260,8 @@ class Scraper:
     bond.BI_net_ytm = self.find_value_from_label_float(
         "Rendimento effettivo a scadenza netto", soup) / 100
     bond.isin = self.find_value_from_label("ISIN", soup)
+    bond.ask_price = self.find_value_from_label_float("Prezzo di riferimento statico", soup)
+    bond.bid_price = bond.ask_price
     # Switch to complete data
     try:
       complete_data = f"/borsa/obbligazioni/eurotlx/dati-completi.html?isin={bond.isin}&lang=it"
@@ -272,14 +274,14 @@ class Scraper:
       print("Error analyzing " + url, e)
       return bond
     bond.issuer = self.find_value_from_label("Emittente", soup_complete_data)
-    bond.ask_price = self.find_value_from_label_float("Prezzo di chiusura", soup_complete_data)
-    bond.bid_price = bond.ask_price
-    bond.bond_type = self.find_value_from_label("Tipologia", soup)
+    # bond.ask_price = self.find_value_from_label_float("Prezzo di chiusura", soup_complete_data)
+    # bond.bid_price = bond.ask_price
+    bond.bond_type = self.find_value_from_label("Tipologia", soup_complete_data)
     bond.coupon_percentage = self.find_value_from_label_float(
-        "Tasso cedola in corso", soup) / 100
+        "Tasso cedola in corso", soup_complete_data) / 100
     bond.coupon_frequency = str_to_coupon_frequency(
-        self.find_value_from_label("Frequenza di pagamento", soup))
-    bond.coupon_frequency_raw = self.find_value_from_label("Frequenza di pagamento", soup)
+        self.find_value_from_label("Frequenza di pagamento", soup_complete_data))
+    bond.coupon_frequency_raw = self.find_value_from_label("Frequenza di pagamento", soup_complete_data)
     bond.negotiation_currency = self.find_value_from_label(
         "Valuta di negoziazione", soup_complete_data)
     bond.total_volume = self.find_value_from_label_float(
@@ -405,17 +407,22 @@ class Scraper:
   def get_data(self) -> list[Bond]:
     urls = [
         # "https://www.borsaitaliana.it/borsa/obbligazioni/ricerca-avanzata.html", #pagination https://www.borsaitaliana.it/borsa/obbligazioni/advanced-search.html?size=&lang=it&page=30
-        ["https://www.borsaitaliana.it/borsa/obbligazioni/eurotlx/ricerca-avanzata.html", False],
-        ["https://www.borsaitaliana.it/borsa/obbligazioni/advanced-search.html?size=&lang=it", True],  # pagination https://www.borsaitaliana.it/borsa/obbligazioni/advanced-search.html?size=&lang=it&page=30
-        ["https://www.borsaitaliana.it/borsa/obbligazioni/mot/obbligazioni-euro/lista.html", True],
-        ["https://www.borsaitaliana.it/borsa/obbligazioni/extramot/lista.html", True],
-        ["https://www.borsaitaliana.it/borsa/obbligazioni/extramot-procube/lista.html", True],
-        ["https://www.borsaitaliana.it/borsa/obbligazioni/mot/btp/lista.html", True]
+        ["https://www.borsaitaliana.it/borsa/obbligazioni/eurotlx/ricerca-avanzata.html", False, "eurotlx"],
+        ["https://www.borsaitaliana.it/borsa/obbligazioni/advanced-search.html?size=&lang=it", True, "general"],  # pagination https://www.borsaitaliana.it/borsa/obbligazioni/advanced-search.html?size=&lang=it&page=30
+        ["https://www.borsaitaliana.it/borsa/obbligazioni/mot/obbligazioni-euro/lista.html", True, "mot"],
+        ["https://www.borsaitaliana.it/borsa/obbligazioni/extramot/lista.html", True, "extramot"],
+        ["https://www.borsaitaliana.it/borsa/obbligazioni/extramot-procube/lista.html", True, "extramot-procube"],
+        ["https://www.borsaitaliana.it/borsa/obbligazioni/mot/btp/lista.html", True, "mot-btp"]
     ]
     bonds: list[Bond] = []
     for url in urls:
       click_on_search = url[0] == "https://www.borsaitaliana.it/borsa/obbligazioni/eurotlx/ricerca-avanzata.html"
       single_bond_list = self.get_data_single_url(url[0], url[1], click_on_search, click_on_search)
+
+      def add_market(bond: Bond):
+        bond.market = url[2]
+        return bond
+      single_bond_list = list(map(add_market, single_bond_list))
       bonds += single_bond_list
     self.driver.close()
     return bonds
