@@ -221,19 +221,22 @@ class Scraper:
         else:
           url_rolling = url + f"?&page={page}"
       else:
-        data = self.analyze_single_table(
-            None,
-            url_rolling,
-            False,
-            click_on_search,
-            is_eurotlx) if page > 1 else self.analyze_single_table(
-            url,
-            None,
-            False,
-            click_on_search if page == 1 else False,
-            is_eurotlx)
+        if page == 1:
+          data = self.analyze_single_table(
+              url,
+              None,
+              False,
+              click_on_search,
+              is_eurotlx)
+        else:
+          data = self.analyze_single_table(
+              None,
+              url_rolling,
+              False,
+              click_on_search,
+              is_eurotlx)
         url_rolling = data.next_url_to_click
-
+        page += 1
       bonds += data.bonds
 
     return bonds
@@ -342,12 +345,12 @@ class Scraper:
               search_button.click()
           except BaseException:
             pass
-          try:
-            link_element = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "a[title='Successiva']")))
-          except BaseException:
-            print("link_element not found")
-            link_element = None
-          ul_element = wait.until(EC.presence_of_element_located((By.CLASS_NAME, "m-pagination__nav")))
+        try:
+          link_element = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "a[title='Successiva']")))
+        except BaseException:
+          print("link_element not found")
+          link_element = None
+        ul_element = wait.until(EC.presence_of_element_located((By.CLASS_NAME, "m-pagination__nav")))
         try:
           wait.until(EC.visibility_of_element_located((By.ID, "tableResults")))
         except BaseException:
