@@ -13,25 +13,6 @@ class SideType(Enum):
 
 class Bond:
 
-  class Subordination(Enum):
-    COVERED = "COVERED"
-    SENIOR = "SENIOR"
-    SUBORDINATED = "SUBORDINATED"
-    TIER2 = "TIER II"
-    UNDEFINED = "UNDEFINED"
-
-    @staticmethod
-    def of(string: Union[str, None]):
-      if (string == "COVERED"):
-        return Bond.Subordination.COVERED
-      if (string == "SENIOR"):
-        return Bond.Subordination.SENIOR
-      if (string == "SUBORDINATED"):
-        return Bond.Subordination.SUBORDINATED
-      if (string == "TIER II"):
-        return Bond.Subordination.TIER2
-      return Bond.Subordination.UNDEFINED
-
   class CouponFrequency(Enum):
     ANNUAL = "ANNUAL"
     SEMESTRAL = "SEMESTRAL"
@@ -146,7 +127,7 @@ class Bond:
                 maturity_date: datetime,
                 payout_desription: str,  # ok
                 bond_type: str,
-                subordination: Subordination,  # ok
+                subordination: str,  # ok
                 coupon_percentage: float,  # ok
                 borsa_italiana_gross_yield: float,
                 minimun_amount: int,  # ok
@@ -209,7 +190,7 @@ class Bond:
     # check if it's a zero counpon, if yes, use closed form
     if (self.bond_structure == Bond.BondStructure.PLAIN_VANILLA and self.coupon_frequency == Bond.CouponFrequency.UNDEFINED):
       return self.get_ytm_zero_coupon_bond(side_type, price_date)
-    if (self.bond_structure == Bond.BondStructure.PLAIN_VANILLA and self.bond_structure == Bond.BondStructure.UNDEFINED):
+    if (self.bond_structure == Bond.BondStructure.PLAIN_VANILLA and self.bond_structure != Bond.BondStructure.UNDEFINED):
       bond_price = self.bid_price if side_type == SideType.BID else self.ask_price
       def yield_to_maturity(interest_rate): return self.get_price(interest_rate, price_date) - bond_price
       return optimize.newton(yield_to_maturity, 0.0005)

@@ -1,5 +1,5 @@
 import datetime
-from src.scraper.data_converters import scraped_str_to_subordination, str_to_bond_structure, str_to_coupon_frequency
+from src.scraper.data_converters import str_to_bond_structure, str_to_coupon_frequency
 from src.utils import datetimes_difference_in_years
 from ..bond import Bond
 from ..single_table_dto import SingleTableDTO
@@ -100,8 +100,7 @@ class Scraper:
     data_godimento = self.find_value_from_label("Data Godimento", soup)
     if data_godimento is not None and data_godimento != "":
       bond.date_start_maturation = datetime.datetime.strptime(data_godimento, "%d/%m/%y")
-    bond.subordination = scraped_str_to_subordination(
-        self.find_value_from_label("Subordinazione", soup))
+    bond.subordination = self.find_value_from_label("Subordinazione", soup)
     bond.bond_structure = str_to_bond_structure(
         self.find_value_from_label(
             "Struttura Bond", soup))
@@ -420,7 +419,7 @@ class Scraper:
       single_bond_list = self.get_data_single_url(url[0], url[1], click_on_search, click_on_search)
 
       def add_market(bond: Bond):
-        bond.market = url[2]
+        # bond.market = url[2]
         return bond
       single_bond_list = list(map(add_market, single_bond_list))
       bonds += single_bond_list

@@ -1,12 +1,6 @@
 from src.bond import Bond
 
 
-def scraped_str_to_subordination(string: str) -> Bond.Subordination:
-  if string == "SUBORDINATO":
-    return Bond.Subordination.SUBORDINATED
-  return Bond.Subordination.of(string)
-
-
 def str_to_bond_structure(string: str) -> Bond.BondStructure:
   if string == "Currency Linked":
     return Bond.BondStructure.CURRENCY_LINKED
@@ -22,12 +16,12 @@ def str_to_bond_structure(string: str) -> Bond.BondStructure:
 
 
 def str_to_coupon_frequency(string: str) -> Bond.CouponFrequency:
-  if string == "Annuale":
+  if string == "Annuale" or string == "12 Mesi":
     return Bond.CouponFrequency.ANNUAL
-  if string == "Semestrale":
+  if string == "Semestrale" or string == "6 Mesi":
     return Bond.CouponFrequency.SEMESTRAL
   if string == "Mensile":
     return Bond.CouponFrequency.MONTHLY
-  if string == "Trimestrale":
+  if string == "Trimestrale" or string == "3 Mesi":
     return Bond.CouponFrequency.TRIMESTRAL
   return Bond.CouponFrequency.UNDEFINED

@@ -33,10 +33,6 @@ class Random_Objects:
     return random.choice(list(Bond.BondStructure))
 
   @staticmethod
-  def random_Subordination() -> Bond.Subordination:
-    return random.choice(list(Bond.Subordination))
-
-  @staticmethod
   def random_bond() -> Bond:
     bond = Bond()
     bond.name = Random_Objects.random_string()
@@ -55,7 +51,7 @@ class Random_Objects:
     bond.maturity_date = Random_Objects.random_datetime()
     bond.payout_desription = Random_Objects.random_string()
     bond.bond_type = Random_Objects.random_string()
-    bond.subordination = Random_Objects.random_Subordination()
+    bond.subordination = Random_Objects.random_string()
     bond.coupon_percentage = Random_Objects.random_float()
     bond.borsa_italiana_gross_yield = Random_Objects.random_float()
     bond.minimun_amount = Random_Objects.random_int()
