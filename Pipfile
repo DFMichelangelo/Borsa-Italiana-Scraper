@@ -35,7 +35,7 @@ _lint ="autopep8 ."
 _start = "pipenv run start_main"
 _mypy = "mypy ."
 _test = "pytest -s"
-_code_coverage = "coverage run --omit='test/**' -m pytest"
+_code_coverage = "coverage run --source='./' --omit='test/**' -m pytest"
 _code_coverage_report = "coverage html --omit='test/**' -d coverage_html"
 _pre_command= "bash -c 'pipenv run _lint && pipenv run _mypy'"
 

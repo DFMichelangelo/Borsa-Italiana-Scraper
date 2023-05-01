@@ -419,7 +419,7 @@ class Scraper:
       single_bond_list = self.get_data_single_url(url[0], url[1], click_on_search, click_on_search)
 
       def add_market(bond: Bond):
-        # bond.market = url[2]
+        bond.market = url[2]
         return bond
       single_bond_list = list(map(add_market, single_bond_list))
       bonds += single_bond_list
