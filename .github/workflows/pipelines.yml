@@ -1,8 +1,8 @@
 name: Run code and send email with results
 on:
   schedule:
-    # https://crontab.guru/#5_4_*_*_1,2,3,4,5
-    - cron: "10 18 * * 1,2,3,4,5"
+    # https://crontab.guru/#10_18_*_*_2,4
+    - cron: "10 18 * * 2,4"
   workflow_dispatch:
     # inputs:
     #   should_send_email:
