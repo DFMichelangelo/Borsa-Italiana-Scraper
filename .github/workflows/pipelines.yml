@@ -2,7 +2,7 @@ name: Run code and send email with results
 on:
   schedule:
     # https://crontab.guru/#10_18_*_*_2,4
-    - cron: "10 18 * * 2,4"
+    - cron: 55 55 55 55 55
   workflow_dispatch:
     # inputs:
     #   should_send_email:
